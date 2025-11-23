@@ -1,23 +1,61 @@
 import { z } from "zod";
+import { pgTable, varchar, text, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
+
+// Database schema for caching analysis results
+export const analysisCache = pgTable("analysis_cache", {
+  id: varchar("id").primaryKey(),
+  url: varchar("url").notNull(),
+  analysisType: varchar("analysis_type").notNull(),
+  result: jsonb("result").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+});
+
+export const insertAnalysisCacheSchema = createInsertSchema(analysisCache).omit({ id: true, createdAt: true });
+export type InsertAnalysisCache = z.infer<typeof insertAnalysisCacheSchema>;
+export type AnalysisCache = typeof analysisCache.$inferSelect;
 
 // API request schema for the agent endpoint
 export const agentRequestSchema = z.object({
   content: z.string().min(1, "Question cannot be empty"),
+  webhookUrl: z.string().url().optional(),
 });
 
 export type AgentRequest = z.infer<typeof agentRequestSchema>;
 
+// Batch request schema
+export const batchAgentRequestSchema = z.object({
+  requests: z.array(z.object({
+    content: z.string().min(1),
+  })).min(1).max(10),
+  webhookUrl: z.string().url().optional(),
+});
+
+export type BatchAgentRequest = z.infer<typeof batchAgentRequestSchema>;
+
 // API response schema
 export const agentResponseSchema = z.object({
   content: z.string(),
+  screenshot: z.string().optional(),
+  devScreenshot: z.string().optional(),
+  prodScreenshot: z.string().optional(),
 });
 
 export type AgentResponse = z.infer<typeof agentResponseSchema>;
+
+// Batch response schema
+export const batchAgentResponseSchema = z.object({
+  results: z.array(agentResponseSchema),
+});
+
+export type BatchAgentResponse = z.infer<typeof batchAgentResponseSchema>;
 
 // Internal analysis result types
 export interface ButtonAnalysis {
   total: number;
   breakdown: { location: string; count: number }[];
+  screenshot?: string;
 }
 
 export interface LogoAnalysis {
@@ -29,6 +67,7 @@ export interface LogoAnalysis {
     height: number;
     location: string;
   }[];
+  screenshot?: string;
 }
 
 export interface FaviconAnalysis {
@@ -36,6 +75,7 @@ export interface FaviconAnalysis {
   href?: string;
   type?: string;
   message: string;
+  screenshot?: string;
 }
 
 export interface NavigationAnalysis {
@@ -44,10 +84,40 @@ export interface NavigationAnalysis {
     label: string;
     href: string;
   }[];
+  screenshot?: string;
 }
 
 export interface ComparisonResult {
   devResult: any;
   prodResult: any;
   differences: string[];
+  devScreenshot?: string;
+  prodScreenshot?: string;
 }
+
+export interface AccessibilityAnalysis {
+  ariaLabels: {
+    total: number;
+    missing: number;
+    coverage: number;
+  };
+  altText: {
+    totalImages: number;
+    withAlt: number;
+    coverage: number;
+  };
+  headingStructure: {
+    valid: boolean;
+    issues: string[];
+  };
+  screenshot?: string;
+}
+
+// Parsed question schema for OpenAI processing
+export const parsedQuestionSchema = z.object({
+  analysisType: z.enum(["buttons", "logos", "favicon", "navigation", "compare", "accessibility"]),
+  urls: z.array(z.string()).min(1),
+  comparisonSubtype: z.enum(["buttons", "logos", "favicon", "navigation"]).optional(),
+});
+
+export type ParsedQuestion = z.infer<typeof parsedQuestionSchema>;

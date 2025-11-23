@@ -54,6 +54,17 @@ async function navigateToUrl(page: Page, url: string): Promise<void> {
   });
 }
 
+async function captureScreenshot(page: Page): Promise<string> {
+  const screenshot = await page.screenshot({
+    type: "png",
+    fullPage: false, // Capture only viewport for faster performance
+  });
+  return screenshot.toString("base64");
+}
+
+// Export shared helpers for use in other services
+export { getBrowser, navigateToUrl, captureScreenshot };
+
 export async function countButtons(url: string): Promise<ButtonAnalysis> {
   const browser = await getBrowser();
   const page = await browser.newPage();
@@ -94,8 +105,9 @@ export async function countButtons(url: string): Promise<ButtonAnalysis> {
       };
     });
 
+    const screenshot = await captureScreenshot(page);
     await page.close();
-    return buttonData;
+    return { ...buttonData, screenshot };
   } catch (error: any) {
     await page.close();
     throw error;
@@ -151,8 +163,9 @@ export async function findLogos(url: string): Promise<LogoAnalysis> {
       };
     });
 
+    const screenshot = await captureScreenshot(page);
     await page.close();
-    return logoData;
+    return { ...logoData, screenshot };
   } catch (error: any) {
     await page.close();
     throw error;
@@ -200,8 +213,11 @@ export async function checkFavicon(url: string): Promise<FaviconAnalysis> {
       }
     }
 
+    // Navigate back to original URL for screenshot
+    await navigateToUrl(page, url);
+    const screenshot = await captureScreenshot(page);
     await page.close();
-    return faviconData;
+    return { ...faviconData, screenshot };
   } catch (error: any) {
     await page.close();
     throw error;
@@ -237,8 +253,9 @@ export async function analyzeNavigation(url: string): Promise<NavigationAnalysis
       };
     });
 
+    const screenshot = await captureScreenshot(page);
     await page.close();
-    return navData;
+    return { ...navData, screenshot };
   } catch (error: any) {
     await page.close();
     throw error;
@@ -301,9 +318,15 @@ export async function compareEnvironments(
     }
   }
 
+  // Extract screenshots from results
+  const devScreenshot = devResult.screenshot;
+  const prodScreenshot = prodResult.screenshot;
+
   return {
     devResult,
     prodResult,
     differences,
+    devScreenshot,
+    prodScreenshot,
   };
 }

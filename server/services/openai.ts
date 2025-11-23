@@ -20,9 +20,10 @@ function isRateLimitError(error: any): boolean {
 }
 
 export interface ParsedQuestion {
-  analysisType: "buttons" | "logos" | "favicon" | "navigation" | "compare" | "unknown";
+  analysisType: "buttons" | "logos" | "favicon" | "navigation" | "accessibility" | "compare" | "unknown";
   urls: string[];
   rawQuestion: string;
+  comparisonSubtype?: "buttons" | "logos" | "favicon" | "navigation";
 }
 
 export async function parseUserQuestion(question: string): Promise<ParsedQuestion> {
@@ -36,18 +37,25 @@ export async function parseUserQuestion(question: string): Promise<ParsedQuestio
               {
                 role: "system",
                 content: `You are a website analysis assistant. Parse user questions about websites and determine:
-1. What type of analysis they want (buttons, logos, favicon, navigation, or compare)
+1. What type of analysis they want (buttons, logos, favicon, navigation, accessibility, or compare)
 2. Which URL(s) they're asking about
 
 Return JSON with this exact structure:
 {
-  "analysisType": "buttons" | "logos" | "favicon" | "navigation" | "compare" | "unknown",
+  "analysisType": "buttons" | "logos" | "favicon" | "navigation" | "accessibility" | "compare" | "unknown",
   "urls": ["url1", "url2"],
-  "rawQuestion": "the original question"
+  "rawQuestion": "the original question",
+  "comparisonSubtype": "buttons" | "logos" | "favicon" | "navigation" (only if analysisType is "compare")
 }
 
 Rules:
 - analysisType "compare" if they mention dev/prod, development/production, or comparing two URLs
+- analysisType "accessibility" if they mention ARIA, alt text, screen readers, wcag, or accessibility
+- If analysisType is "compare", determine comparisonSubtype:
+  * "buttons" if they mention buttons, clickable elements, or interactive elements
+  * "logos" if they mention logos, images, or branding
+  * "favicon" if they mention favicon or site icon
+  * "navigation" (default) if they mention navigation, menu, or no specific element type
 - Extract all URLs mentioned (add https:// if missing)
 - If no URL found, use empty array for urls
 - Always include the rawQuestion field`

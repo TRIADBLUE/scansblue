@@ -1,22 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import cors from "cors";
-import { agentRequestSchema } from "@shared/schema";
+import { agentRequestSchema, batchAgentRequestSchema } from "@shared/schema";
 import { parseUserQuestion } from "./services/openai";
-import {
-  countButtons,
-  findLogos,
-  checkFavicon,
-  analyzeNavigation,
-  compareEnvironments,
-} from "./services/playwright";
-import {
-  formatButtonAnalysis,
-  formatLogoAnalysis,
-  formatFaviconAnalysis,
-  formatNavigationAnalysis,
-  formatComparison,
-} from "./services/formatter";
+import { executeAnalysis } from "./services/analysisExecutor";
+import { sendWebhook } from "./services/webhook";
+import { storage } from "./storage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Enable CORS for cross-origin requests
@@ -56,7 +45,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { content } = validation.data;
+      const { content, webhookUrl } = validation.data;
 
       // Parse the user's question using OpenAI
       const parsed = await parseUserQuestion(content);
@@ -68,87 +57,136 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      let responseContent: string;
-
-      try {
-        // Handle different analysis types
-        if (parsed.analysisType === "compare" && parsed.urls.length >= 2) {
-          // Comparison between two environments
-          const [url1, url2] = parsed.urls;
-          
-          // Determine what to compare (default to navigation if not specified)
-          let comparisonType: "buttons" | "logos" | "favicon" | "navigation" = "navigation";
-          if (content.toLowerCase().includes("button")) comparisonType = "buttons";
-          else if (content.toLowerCase().includes("logo")) comparisonType = "logos";
-          else if (content.toLowerCase().includes("favicon")) comparisonType = "favicon";
-
-          const comparison = await compareEnvironments(url1, url2, comparisonType);
-          responseContent = formatComparison(url1, url2, comparisonType, comparison);
-
-        } else if (parsed.analysisType === "buttons") {
-          const analysis = await countButtons(parsed.urls[0]);
-          responseContent = formatButtonAnalysis(parsed.urls[0], analysis);
-
-        } else if (parsed.analysisType === "logos") {
-          const analysis = await findLogos(parsed.urls[0]);
-          responseContent = formatLogoAnalysis(parsed.urls[0], analysis);
-
-        } else if (parsed.analysisType === "favicon") {
-          const analysis = await checkFavicon(parsed.urls[0]);
-          responseContent = formatFaviconAnalysis(parsed.urls[0], analysis);
-
-        } else if (parsed.analysisType === "navigation") {
-          const analysis = await analyzeNavigation(parsed.urls[0]);
-          responseContent = formatNavigationAnalysis(parsed.urls[0], analysis);
-
-        } else {
-          // Unknown analysis type - try to infer from question
-          if (content.toLowerCase().includes("button")) {
-            const analysis = await countButtons(parsed.urls[0]);
-            responseContent = formatButtonAnalysis(parsed.urls[0], analysis);
-          } else if (content.toLowerCase().includes("logo")) {
-            const analysis = await findLogos(parsed.urls[0]);
-            responseContent = formatLogoAnalysis(parsed.urls[0], analysis);
-          } else if (content.toLowerCase().includes("favicon")) {
-            const analysis = await checkFavicon(parsed.urls[0]);
-            responseContent = formatFaviconAnalysis(parsed.urls[0], analysis);
-          } else {
-            // Default to navigation analysis
-            const analysis = await analyzeNavigation(parsed.urls[0]);
-            responseContent = formatNavigationAnalysis(parsed.urls[0], analysis);
-          }
-        }
-
-        res.json({ content: responseContent });
-
-      } catch (analysisError: any) {
-        console.error("Analysis error:", analysisError);
-
-        // Provide helpful error messages based on common issues
-        if (analysisError.message?.includes("timeout")) {
-          return res.status(504).json({
-            content: `The site took too long to respond. It might be down or blocking automated access. Please try a different URL or try again later.`,
-          });
-        } else if (analysisError.message?.includes("net::ERR")) {
-          return res.status(502).json({
-            content: `I couldn't access that URL. Please check that it's valid and publicly accessible. Make sure the URL includes the protocol (e.g., https://).`,
-          });
-        } else {
-          return res.status(500).json({
-            content: `I encountered an error while analyzing the website: ${analysisError.message || "Unknown error"}. Please try again or try a different URL.`,
-          });
-        }
+      // Execute analysis using shared executor (handles caching internally)
+      const response = await executeAnalysis({ parsed, rawContent: content, storage });
+      
+      // Send webhook if provided
+      if (webhookUrl) {
+        sendWebhook(webhookUrl, {
+          event: "analysis_complete",
+          timestamp: new Date().toISOString(),
+          result: response,
+          originalRequest: content,
+        }).catch(err => console.error("Webhook error:", err));
       }
 
+      res.json(response);
+
     } catch (error: any) {
-      console.error("Request error:", error);
-      res.status(500).json({
-        content: "An unexpected error occurred. Please try again.",
+      console.error("Error processing request:", error);
+
+      // Provide helpful error messages based on common issues
+      if (error.message?.includes("timeout")) {
+        return res.status(504).json({
+          content: `The site took too long to respond. It might be down or blocking automated access. Please try a different URL or try again later.`,
+        });
+      } else if (error.message?.includes("net::ERR")) {
+        return res.status(502).json({
+          content: `I couldn't access that URL. Please check that it's valid and publicly accessible. Make sure the URL includes the protocol (e.g., https://).`,
+        });
+      } else if (error.message?.includes("browser")) {
+        return res.status(503).json({
+          content: `The browser automation service is currently unavailable. This is likely because the service requires Chromium dependencies that aren't available in this environment. Please try deploying to an environment that supports Playwright.`,
+        });
+      } else {
+        return res.status(500).json({
+          content: `An error occurred while analyzing the website: ${error.message || "Unknown error"}`,
+        });
+      }
+    }
+  });
+
+  // Batch analysis endpoint
+  app.post("/api/agent/batch", async (req, res) => {
+    try {
+      // Validate request body
+      const validation = batchAgentRequestSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: "Invalid request. Please provide 'requests' array with 1-10 content items.",
+        });
+      }
+
+      const { requests, webhookUrl } = validation.data;
+      
+      // Process all requests in parallel using shared executor
+      const results = await Promise.all(
+        requests.map(async ({ content }) => {
+          try {
+            const parsed = await parseUserQuestion(content);
+            
+            if (parsed.urls.length === 0) {
+              return {
+                content: "I couldn't find a valid URL in your question. Please include a website URL.",
+              };
+            }
+
+            return await executeAnalysis({ parsed, rawContent: content, storage });
+          } catch (error: any) {
+            return {
+              content: `Error: ${error.message || "Unknown error"}`,
+            };
+          }
+        })
+      );
+
+      const response = { results };
+
+      // Send webhook if provided
+      if (webhookUrl) {
+        sendWebhook(webhookUrl, {
+          event: "batch_complete",
+          timestamp: new Date().toISOString(),
+          result: response,
+          originalRequests: requests,
+        }).catch(err => console.error("Webhook error:", err));
+      }
+
+      res.json(response);
+
+    } catch (error: any) {
+      console.error("Batch processing error:", error);
+      return res.status(500).json({
+        error: `Batch processing failed: ${error.message || "Unknown error"}`,
+      });
+    }
+  });
+
+  // Health check endpoint
+  app.get("/api/health", async (req, res) => {
+    try {
+      // Try to launch browser to verify Playwright is working
+      const { chromium } = await import("playwright");
+      const browser = await chromium.launch({
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process',
+          '--disable-gpu'
+        ]
+      });
+      await browser.close();
+
+      res.json({
+        status: "healthy",
+        browser: "operational",
+        message: "Site Inspector Agent is ready"
+      });
+    } catch (error: any) {
+      res.status(503).json({
+        status: "degraded",
+        browser: "unavailable",
+        message: "Browser automation unavailable - likely missing system dependencies",
+        error: error.message
       });
     }
   });
 
   const httpServer = createServer(app);
-
   return httpServer;
 }

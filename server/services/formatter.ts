@@ -4,6 +4,7 @@ import type {
   FaviconAnalysis,
   NavigationAnalysis,
   ComparisonResult,
+  AccessibilityAnalysis,
 } from "@shared/schema";
 
 export function formatButtonAnalysis(url: string, analysis: ButtonAnalysis): string {
@@ -110,6 +111,35 @@ export function formatComparison(
     response += `Total: ${comparison.prodResult.total} buttons\n`;
   } else if (analysisType === "navigation") {
     response += `Total: ${comparison.prodResult.menuItems} menu items\n`;
+  }
+
+  return response.trim();
+}
+
+export function formatAccessibilityAnalysis(url: string, analysis: AccessibilityAnalysis): string {
+  let response = `Accessibility Analysis for ${url}:\n\n`;
+
+  // ARIA Labels
+  response += `ARIA Labels & Accessible Names:\n`;
+  response += `• Total interactive elements: ${analysis.ariaLabels.total}\n`;
+  response += `• Elements with accessible names: ${analysis.ariaLabels.total - analysis.ariaLabels.missing}\n`;
+  response += `• Elements missing accessible names: ${analysis.ariaLabels.missing}\n`;
+  response += `• Coverage: ${analysis.ariaLabels.coverage.toFixed(1)}%\n\n`;
+
+  // Alt Text
+  response += `Image Alt Text:\n`;
+  response += `• Total images: ${analysis.altText.totalImages}\n`;
+  response += `• Images with alt text: ${analysis.altText.withAlt}\n`;
+  response += `• Images missing alt text: ${analysis.altText.totalImages - analysis.altText.withAlt}\n`;
+  response += `• Coverage: ${analysis.altText.coverage.toFixed(1)}%\n\n`;
+
+  // Heading Structure
+  response += `Heading Structure:\n`;
+  response += `• Valid: ${analysis.headingStructure.valid ? 'Yes' : 'No'}\n`;
+  if (analysis.headingStructure.issues.length > 0) {
+    analysis.headingStructure.issues.forEach(issue => {
+      response += `• ${issue}\n`;
+    });
   }
 
   return response.trim();
