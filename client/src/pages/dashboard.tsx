@@ -2,14 +2,17 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle, AlertCircle, Clock } from "lucide-react";
+import { Loader2, CheckCircle, AlertCircle, Clock, ExternalLink } from "lucide-react";
+import hostsblueLogo from "@assets/hostsblue lockup_1763939344391.png";
+import swipesbleLogo from "@assets/SwipesBlue Lockup_1763939375052.png";
+import consoleblueLogo from "@assets/ConsoleBlue-logo_1763939414623.png";
+import blueprintLogo from "@assets/BBlueprint Main Header Logo_1763939585137.png";
 import type { WebsiteAnalysisResponse } from "@shared/schema";
 
 interface SiteStatus {
   name: string;
   url: string;
-  icon: string;
+  logo: string;
   description: string;
   result?: WebsiteAnalysisResponse;
   loading?: boolean;
@@ -20,20 +23,20 @@ const TRIAD_BLUE_SITES: SiteStatus[] = [
   {
     name: "HostsBlue",
     url: "hostsblue.io",
-    icon: "🖥️",
+    logo: hostsblueLogo,
     description: "Web Hosting Infrastructure",
   },
   {
     name: "SwipesBlue",
     url: "swipesblue.io",
-    icon: "💳",
+    logo: swipesbleLogo,
     description: "Payment Gateway",
   },
   {
-    name: "TriadBlue",
-    url: "triadblue.io",
-    icon: "🔗",
-    description: "Main Hub & Management",
+    name: "ConsoleBlue",
+    url: "consoleblue.io",
+    logo: consoleblueLogo,
+    description: "Agent Chat System",
   },
 ];
 
@@ -107,27 +110,26 @@ export default function Dashboard() {
         </div>
 
         {/* Sites Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {sites.map(site => (
             <Card
               key={site.url}
               className="p-6 hover:shadow-lg transition-shadow"
               data-testid={`card-site-${site.url}`}
             >
-              {/* Header */}
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-3xl">{site.icon}</span>
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                      {site.name}
-                    </h2>
-                  </div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    {site.description}
-                  </p>
-                </div>
+              {/* Logo */}
+              <div className="mb-4 h-16 flex items-center">
+                <img 
+                  src={site.logo} 
+                  alt={site.name}
+                  className="max-h-full max-w-full object-contain"
+                />
               </div>
+
+              {/* Description */}
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                {site.description}
+              </p>
 
               {/* Status */}
               {site.result && !site.loading && !site.error && (
@@ -211,11 +213,41 @@ export default function Dashboard() {
               </Button>
             </Card>
           ))}
+
+          {/* Business Blueprint Card */}
+          <Card
+            className="p-6 hover:shadow-lg transition-shadow flex flex-col"
+            data-testid="card-site-businessblueprint"
+          >
+            {/* Logo */}
+            <div className="mb-4 h-16 flex items-center">
+              <img 
+                src={blueprintLogo} 
+                alt="Business Blueprint"
+                className="max-h-full max-w-full object-contain"
+              />
+            </div>
+
+            {/* Description */}
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-auto">
+              Manage subscriptions and customer data
+            </p>
+
+            {/* Action Button */}
+            <Button
+              onClick={() => window.open("https://businessblueprint.io", "_blank")}
+              className="w-full mt-4"
+              data-testid="button-open-businessblueprint"
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              View Subscriptions
+            </Button>
+          </Card>
         </div>
 
         {/* Summary */}
         {sites.some(s => s.result) && (
-          <Card className="mt-8 p-6">
+          <Card className="p-6">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
               Overall Status
             </h3>
