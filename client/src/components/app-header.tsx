@@ -1,13 +1,13 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Sparkles, List } from "lucide-react";
+import { Sparkles, List, LayoutDashboard } from "lucide-react";
 
 export function AppHeader() {
   const [location] = useLocation();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container max-w-5xl mx-auto px-4">
+      <div className="container max-w-6xl mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo/Brand */}
           <Link href="/">
@@ -42,6 +42,18 @@ export function AppHeader() {
               >
                 <List className="w-4 h-4" />
                 <span className="hidden sm:inline">Analyze</span>
+              </Button>
+            </Link>
+
+            <Link href="/dashboard">
+              <Button
+                variant={location === "/dashboard" ? "default" : "ghost"}
+                size="sm"
+                className="gap-2"
+                data-testid="button-nav-dashboard"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                <span className="hidden sm:inline">Dashboard</span>
               </Button>
             </Link>
           </nav>
