@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { pgTable, varchar, text, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, varchar, text, timestamp, jsonb, serial } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 
 // Database schema for caching analysis results
@@ -16,6 +16,21 @@ export const insertAnalysisCacheSchema = createInsertSchema(analysisCache).omit(
 export type InsertAnalysisCache = z.infer<typeof insertAnalysisCacheSchema>;
 export type AnalysisCache = typeof analysisCache.$inferSelect;
 
+// Database schema for website task analysis results
+export const websiteAnalysis = pgTable("website_analysis", {
+  id: serial("id").primaryKey(),
+  url: varchar("url").notNull(),
+  pagesAnalyzed: text("pages_analyzed").array().notNull(),
+  issues: jsonb("issues").notNull(),
+  tasks: jsonb("tasks").notNull(),
+  summary: text("summary").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertWebsiteAnalysisSchema = createInsertSchema(websiteAnalysis).omit({ id: true, createdAt: true });
+export type InsertWebsiteAnalysis = z.infer<typeof insertWebsiteAnalysisSchema>;
+export type WebsiteAnalysis = typeof websiteAnalysis.$inferSelect;
+
 // API request schema for the agent endpoint
 export const agentRequestSchema = z.object({
   content: z.string().min(1, "Question cannot be empty"),
@@ -23,6 +38,14 @@ export const agentRequestSchema = z.object({
 });
 
 export type AgentRequest = z.infer<typeof agentRequestSchema>;
+
+// Website analysis request schema
+export const websiteAnalysisRequestSchema = z.object({
+  url: z.string().url("Must be a valid URL"),
+  webhookUrl: z.string().url().optional(),
+});
+
+export type WebsiteAnalysisRequest = z.infer<typeof websiteAnalysisRequestSchema>;
 
 // Batch request schema
 export const batchAgentRequestSchema = z.object({
@@ -43,6 +66,26 @@ export const agentResponseSchema = z.object({
 });
 
 export type AgentResponse = z.infer<typeof agentResponseSchema>;
+
+// Website analysis response schema
+export const websiteAnalysisResponseSchema = z.object({
+  url: z.string(),
+  pagesAnalyzed: z.array(z.string()),
+  totalIssues: z.number(),
+  tasks: z.array(z.object({
+    id: z.string(),
+    priority: z.enum(["critical", "high", "medium", "low"]),
+    category: z.enum(["accessibility", "performance", "seo", "ux", "security", "content"]),
+    title: z.string(),
+    description: z.string(),
+    affectedPages: z.array(z.string()),
+    estimatedEffort: z.enum(["quick", "medium", "complex"]),
+    status: z.enum(["open", "in-progress", "completed"]).default("open"),
+  })),
+  summary: z.string(),
+});
+
+export type WebsiteAnalysisResponse = z.infer<typeof websiteAnalysisResponseSchema>;
 
 // Batch response schema
 export const batchAgentResponseSchema = z.object({

@@ -5,6 +5,9 @@ import { agentRequestSchema, batchAgentRequestSchema } from "@shared/schema";
 import { parseUserQuestion } from "./services/openai";
 import { executeAnalysis } from "./services/analysisExecutor";
 import { sendWebhook } from "./services/webhook";
+import { crawlWebsite } from "./services/websiteCrawler";
+import { generateTasks } from "./services/taskGenerator";
+import { websiteAnalysisRequestSchema } from "@shared/schema";
 import { storage } from "./storage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -149,6 +152,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({
         error: `Batch processing failed: ${error.message || "Unknown error"}`,
       });
+    }
+  });
+
+  // Website analysis endpoint - crawls entire site and generates task list
+  app.post("/api/agent/analyze-website", async (req, res) => {
+    try {
+      // Validate request
+      const validation = websiteAnalysisRequestSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: "Invalid request. Please provide a valid 'url'.",
+        });
+      }
+
+      const { url, webhookUrl } = validation.data;
+
+      // Check if we have recent analysis for this URL
+      const existing = await storage.getWebsiteAnalysis(url);
+      if (existing) {
+        const response = {
+          url,
+          pagesAnalyzed: existing.pagesAnalyzed,
+          totalIssues: (existing.issues as any).totalIssues || 0,
+          tasks: existing.tasks,
+          summary: existing.summary,
+        };
+
+        // Send webhook if provided
+        if (webhookUrl) {
+          sendWebhook(webhookUrl, {
+            event: "website_analysis_complete",
+            timestamp: new Date().toISOString(),
+            result: response,
+            fromCache: true,
+          }).catch(err => console.error("Webhook error:", err));
+        }
+
+        return res.json(response);
+      }
+
+      // Crawl the website
+      const { pages } = await crawlWebsite(url);
+      
+      // Generate task list
+      const { tasks, summary } = generateTasks(pages);
+
+      // Store analysis results
+      const pagesAnalyzed = pages.map(p => p.url);
+      const totalIssues = pages.reduce((sum, p) => {
+        let count = 0;
+        count += p.accessibilityIssues.missingAltText;
+        count += p.accessibilityIssues.missingAriaLabels;
+        count += p.accessibilityIssues.headingIssues.length;
+        count += p.contentIssues.brokenLinks.length;
+        count += p.contentIssues.missingImages;
+        count += p.seoIssues.noMetaDescription ? 1 : 0;
+        count += p.seoIssues.missingH1 ? 1 : 0;
+        count += p.seoIssues.duplicateHeadings ? 1 : 0;
+        count += p.performance.unoptimizedAssets;
+        return sum + count;
+      }, 0);
+
+      await storage.setWebsiteAnalysis({
+        url,
+        pagesAnalyzed,
+        issues: { totalIssues, details: pages } as any,
+        tasks: tasks as any,
+        summary,
+      }).catch(err => console.error("Analysis storage error:", err));
+
+      const response = {
+        url,
+        pagesAnalyzed,
+        totalIssues,
+        tasks,
+        summary,
+      };
+
+      // Send webhook if provided
+      if (webhookUrl) {
+        sendWebhook(webhookUrl, {
+          event: "website_analysis_complete",
+          timestamp: new Date().toISOString(),
+          result: response,
+          fromCache: false,
+        }).catch(err => console.error("Webhook error:", err));
+      }
+
+      res.json(response);
+
+    } catch (error: any) {
+      console.error("Website analysis error:", error);
+
+      if (error.message?.includes("timeout")) {
+        return res.status(504).json({
+          error: "Analysis timed out. The website may be slow or unreachable.",
+        });
+      } else if (error.message?.includes("browser")) {
+        return res.status(503).json({
+          error: "Browser service unavailable. This feature requires Chromium dependencies.",
+        });
+      } else {
+        return res.status(500).json({
+          error: `Analysis failed: ${error.message || "Unknown error"}`,
+        });
+      }
     }
   });
 

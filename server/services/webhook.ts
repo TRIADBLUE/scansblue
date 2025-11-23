@@ -1,13 +1,12 @@
 import pRetry from "p-retry";
 
 export interface WebhookPayload {
-  event: "analysis_complete";
+  event: "analysis_complete" | "batch_complete" | "website_analysis_complete";
   timestamp: string;
-  result: {
-    content: string;
-    screenshot?: string;
-  };
-  originalRequest: string;
+  result: any;
+  originalRequest?: string;
+  originalRequests?: any[];
+  fromCache?: boolean;
 }
 
 export async function sendWebhook(url: string, payload: WebhookPayload): Promise<void> {
