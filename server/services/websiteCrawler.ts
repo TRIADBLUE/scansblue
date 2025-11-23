@@ -31,10 +31,7 @@ export async function crawlWebsite(startUrl: string, maxPages: number = 10): Pro
   const visitedUrls = new Set<string>();
   const pagesToAnalyze: string[] = [];
   const urlQueue: string[] = [startUrl];
-  const baseUrl = new URL(startUrl);
-
-  // Normalize URL
-  const normalizedStart = startUrl.startsWith("http") ? startUrl : `https://${startUrl}`;
+  let baseUrl: URL | null = null;
 
   try {
     // Crawl to discover pages (limited breadth-first search)
@@ -46,8 +43,14 @@ export async function crawlWebsite(startUrl: string, maxPages: number = 10): Pro
 
       try {
         const page = await browser.newPage();
-        await navigateToUrl(page, url);
-        pagesToAnalyze.push(url);
+        const canonicalUrl = await navigateToUrl(page, url);
+        
+        // On first navigation, set baseUrl to the canonical URL (handles vanity domain redirects)
+        if (!baseUrl) {
+          baseUrl = new URL(canonicalUrl);
+        }
+        
+        pagesToAnalyze.push(canonicalUrl);
 
         // Extract links for next pages
         const links = await page.$$eval("a[href]", (elements: any[]) =>
@@ -67,10 +70,13 @@ export async function crawlWebsite(startUrl: string, maxPages: number = 10): Pro
         for (const link of links) {
           if (link && !visitedUrls.has(link)) {
             try {
-              const linkUrl = new URL(link, url);
-              // Only follow internal links
-              if (linkUrl.hostname === baseUrl.hostname && pagesToAnalyze.length < maxPages) {
-                urlQueue.push(linkUrl.toString());
+              const linkUrl = new URL(link, canonicalUrl);
+              // Only follow internal links (use canonical baseUrl from first navigation)
+              if (baseUrl && linkUrl.hostname === baseUrl.hostname && pagesToAnalyze.length < maxPages) {
+                const linkString = linkUrl.toString();
+                if (!visitedUrls.has(linkString)) {
+                  urlQueue.push(linkString);
+                }
               }
             } catch {
               // Skip invalid URLs
@@ -102,7 +108,7 @@ async function analyzePage(browser: any, url: string): Promise<CrawlResult> {
   const page = await browser.newPage();
 
   try {
-    await navigateToUrl(page, url);
+    const canonicalUrl = await navigateToUrl(page, url);
 
     // Get page title
     const title = await page.title();
@@ -209,7 +215,7 @@ async function analyzePage(browser: any, url: string): Promise<CrawlResult> {
     });
 
     return {
-      url,
+      url: canonicalUrl,
       title,
       status: 200,
       accessibilityIssues,
@@ -219,7 +225,7 @@ async function analyzePage(browser: any, url: string): Promise<CrawlResult> {
     };
   } catch (error: any) {
     return {
-      url,
+      url: url,
       title: "Error",
       status: error.message?.includes("timeout") ? 504 : 500,
       accessibilityIssues: { missingAltText: 0, missingAriaLabels: 0, headingIssues: [error.message] },

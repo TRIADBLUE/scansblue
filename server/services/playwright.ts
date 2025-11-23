@@ -44,14 +44,17 @@ export async function closeBrowser() {
   }
 }
 
-async function navigateToUrl(page: Page, url: string): Promise<void> {
+async function navigateToUrl(page: Page, url: string): Promise<string> {
   // Ensure URL has protocol
   const finalUrl = url.startsWith("http") ? url : `https://${url}`;
   
-  await page.goto(finalUrl, {
+  const response = await page.goto(finalUrl, {
     waitUntil: "networkidle",
     timeout: 30000,
   });
+  
+  // Return the actual URL after navigation (handles redirects and vanity URLs)
+  return page.url();
 }
 
 async function captureScreenshot(page: Page): Promise<string> {
@@ -70,7 +73,7 @@ export async function countButtons(url: string): Promise<ButtonAnalysis> {
   const page = await browser.newPage();
 
   try {
-    await navigateToUrl(page, url);
+    await navigateToUrl(page, url); // Now returns canonical URL but we don't need to capture it here
 
     // Count all interactive button-like elements
     const buttonData = await page.evaluate(() => {
@@ -119,7 +122,7 @@ export async function findLogos(url: string): Promise<LogoAnalysis> {
   const page = await browser.newPage();
 
   try {
-    await navigateToUrl(page, url);
+    await navigateToUrl(page, url); // Now returns canonical URL but we don't need to capture it here
 
     const logoData = await page.evaluate(() => {
       const images = Array.from(document.querySelectorAll('img'));
