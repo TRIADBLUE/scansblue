@@ -15,8 +15,8 @@ export default function Home() {
 
   const analyzeWebsite = useMutation({
     mutationFn: async (content: string) => {
-      const response = await apiRequest<AgentResponse>("POST", "/api/agent", { content });
-      return response;
+      const response = await apiRequest("POST", "/api/agent", { content });
+      return await response.json() as AgentResponse;
     },
     onSuccess: () => {
       toast({

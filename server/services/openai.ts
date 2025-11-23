@@ -72,7 +72,8 @@ Rules:
           if (isRateLimitError(error)) {
             throw error; // Rethrow to trigger p-retry
           }
-          throw new pRetry.AbortError(error);
+          // For non-rate-limit errors, don't retry
+          throw error;
         }
       },
       {
