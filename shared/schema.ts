@@ -41,7 +41,10 @@ export type AgentRequest = z.infer<typeof agentRequestSchema>;
 
 // Website analysis request schema
 export const websiteAnalysisRequestSchema = z.object({
-  url: z.string().url("Must be a valid URL"),
+  url: z.string()
+    .min(1, "URL cannot be empty")
+    .transform(url => url.startsWith("http") ? url : `https://${url}`)
+    .pipe(z.string().url("Must be a valid URL")),
   webhookUrl: z.string().url().optional(),
 });
 
