@@ -5,6 +5,9 @@ import type {
   NavigationAnalysis,
   ComparisonResult,
   AccessibilityAnalysis,
+  FormsAnalysis,
+  ImagesAnalysis,
+  HeadingStructure,
 } from "@shared/schema";
 
 export function formatButtonAnalysis(url: string, analysis: ButtonAnalysis): string {
@@ -12,16 +15,20 @@ export function formatButtonAnalysis(url: string, analysis: ButtonAnalysis): str
     return `I didn't find any buttons on ${url}.`;
   }
 
-  let response = `I found ${analysis.total} button${analysis.total > 1 ? 's' : ''} on ${url}`;
+  let response = `I found ${analysis.total} button${analysis.total > 1 ? 's' : ''} on ${url}:\n\n`;
 
-  if (analysis.breakdown.length > 0) {
-    response += ":\n\n";
-    analysis.breakdown.forEach(({ location, count }) => {
-      response += `• ${count} in the ${location}\n`;
-    });
-  } else {
-    response += ".";
-  }
+  analysis.buttons.forEach((btn, idx) => {
+    response += `${idx + 1}. ${btn.text || 'Unlabeled Button'}\n`;
+    if (btn.link) {
+      response += `   Link: ${btn.link}\n`;
+    }
+    response += `   Location: ${btn.location}\n`;
+    response += `   State: ${btn.state}\n`;
+    if (btn.styling) {
+      response += `   Styling: ${btn.styling}\n`;
+    }
+    response += '\n';
+  });
 
   return response.trim();
 }
@@ -42,7 +49,11 @@ export function formatLogoAnalysis(url: string, analysis: LogoAnalysis): string 
     if (logo.location !== "unknown") {
       response += ` in the ${logo.location}`;
     }
-    response += `\n   URL: ${logo.src}\n\n`;
+    response += `\n   URL: ${logo.src}\n`;
+    if (logo.className) {
+      response += `   CSS Class: ${logo.className}\n`;
+    }
+    response += '\n';
   });
 
   return response.trim();
@@ -69,16 +80,111 @@ export function formatNavigationAnalysis(url: string, analysis: NavigationAnalys
     return `I didn't find any navigation menu items on ${url}.`;
   }
 
-  let response = `I found ${analysis.menuItems} navigation menu item${analysis.menuItems > 1 ? 's' : ''} on ${url}`;
+  let response = `I found ${analysis.menuItems} navigation menu item${analysis.menuItems > 1 ? 's' : ''} on ${url}:\n\n`;
 
-  if (analysis.structure.length > 0) {
-    response += ". Here are the main menu items:\n\n";
-    analysis.structure.forEach(({ label, href }, idx) => {
-      response += `${idx + 1}. ${label}\n   ${href}\n\n`;
-    });
-  } else {
-    response += ".";
+  const buildTree = (items: any[], depth: number = 0): string => {
+    return items.map(item => {
+      const indent = '  '.repeat(depth) + '• ';
+      let line = `${indent}${item.label}`;
+      if (item.href) {
+        line += ` → ${item.href}`;
+      }
+      let result = line + '\n';
+      if (item.children && item.children.length > 0) {
+        result += buildTree(item.children, depth + 1);
+      }
+      return result;
+    }).join('');
+  };
+
+  response += buildTree(analysis.structure);
+
+  return response.trim();
+}
+
+export function formatFormsAnalysis(url: string, analysis: FormsAnalysis): string {
+  if (analysis.totalForms === 0) {
+    return `I didn't find any forms on ${url}.`;
   }
+
+  let response = `I found ${analysis.totalForms} form${analysis.totalForms > 1 ? 's' : ''} on ${url}:\n\n`;
+
+  analysis.forms.forEach((form, formIdx) => {
+    response += `Form ${formIdx + 1}:\n`;
+    if (form.id) response += `  ID: ${form.id}\n`;
+    if (form.name) response += `  Name: ${form.name}\n`;
+    response += `  Method: ${form.method}\n`;
+    if (form.action) response += `  Action: ${form.action}\n`;
+    
+    if (form.fields.length > 0) {
+      response += `  Fields:\n`;
+      form.fields.forEach((field, idx) => {
+        response += `    ${idx + 1}. Type: ${field.type}`;
+        if (field.name) response += `, Name: ${field.name}`;
+        if (field.label) response += `, Label: ${field.label}`;
+        response += `, Required: ${field.required ? 'Yes' : 'No'}\n`;
+      });
+    }
+    response += '\n';
+  });
+
+  return response.trim();
+}
+
+export function formatImagesAnalysis(url: string, analysis: ImagesAnalysis): string {
+  let response = `Found ${analysis.totalImages} image${analysis.totalImages > 1 ? 's' : ''} on ${url}.\n`;
+  response += `Alt Text Coverage: ${analysis.altCoverage}% (${analysis.images.filter(img => img.alt).length}/${analysis.totalImages} with alt text)\n`;
+  
+  if (analysis.missingAlt > 0) {
+    response += `⚠️ ${analysis.missingAlt} image${analysis.missingAlt > 1 ? 's' : ''} missing alt text.\n\n`;
+  } else {
+    response += `✓ All images have alt text.\n\n`;
+  }
+
+  response += `Image Details:\n`;
+  analysis.images.slice(0, 20).forEach((img, idx) => {
+    response += `${idx + 1}. `;
+    if (img.alt) {
+      response += `"${img.alt}" - `;
+    }
+    response += `${img.width}×${img.height}px`;
+    if (img.location !== "unknown") {
+      response += ` (${img.location})`;
+    }
+    response += `\n   URL: ${img.src}\n\n`;
+  });
+
+  if (analysis.images.length > 20) {
+    response += `... and ${analysis.images.length - 20} more images`;
+  }
+
+  return response.trim();
+}
+
+export function formatHeadingsAnalysis(url: string, analysis: HeadingStructure): string {
+  let response = `Heading Structure Analysis for ${url}:\n\n`;
+
+  if (analysis.headings.length === 0) {
+    return response + `No headings found on the page.`;
+  }
+
+  response += `Found ${analysis.headings.length} heading${analysis.headings.length > 1 ? 's' : ''}:\n`;
+  response += `H1 Count: ${analysis.h1Count}\n`;
+  response += `Structure Valid: ${analysis.isValid ? 'Yes ✓' : 'No ✗'}\n\n`;
+
+  if (analysis.issues.length > 0) {
+    response += `Issues Found:\n`;
+    analysis.issues.forEach(issue => {
+      response += `• ${issue}\n`;
+    });
+    response += '\n';
+  }
+
+  response += `Heading Hierarchy:\n`;
+  analysis.headings.forEach((h, idx) => {
+    const indent = '  '.repeat(h.level - 1);
+    response += `${indent}H${h.level}: ${h.text.substring(0, 60)}${h.text.length > 60 ? '...' : ''}\n`;
+  });
 
   return response.trim();
 }

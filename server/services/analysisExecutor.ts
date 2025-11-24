@@ -1,8 +1,27 @@
 import type { ParsedQuestion } from "./openai";
 import type { AgentResponse } from "@shared/schema";
-import { countButtons, findLogos, findFavicon, analyzeNavigation, compareEnvironments } from "./browserless";
+import {
+  countButtons,
+  findLogos,
+  findFavicon,
+  analyzeNavigation,
+  compareEnvironments,
+  analyzeForms,
+  analyzeImages,
+  analyzeHeadings,
+} from "./browserless";
 import { analyzeAccessibility } from "./accessibility";
-import { formatButtonAnalysis, formatLogoAnalysis, formatFaviconAnalysis, formatNavigationAnalysis, formatComparison, formatAccessibilityAnalysis } from "./formatter";
+import {
+  formatButtonAnalysis,
+  formatLogoAnalysis,
+  formatFaviconAnalysis,
+  formatNavigationAnalysis,
+  formatComparison,
+  formatAccessibilityAnalysis,
+  formatFormsAnalysis,
+  formatImagesAnalysis,
+  formatHeadingsAnalysis,
+} from "./formatter";
 import type { IStorage } from "../storage";
 
 interface AnalysisExecutorOptions {
@@ -52,7 +71,7 @@ export async function executeAnalysis({ parsed, rawContent, storage }: AnalysisE
 
       const comparison = await compareEnvironments(url1, url2, comparisonSubtype);
       responseContent = formatComparison(url1, url2, comparisonSubtype, comparison);
-      
+
       // Capture both screenshots for comparison
       devScreenshot = comparison.devScreenshot;
       prodScreenshot = comparison.prodScreenshot;
@@ -137,8 +156,50 @@ export async function executeAnalysis({ parsed, rawContent, storage }: AnalysisE
         expiresAt,
       }).catch(err => console.error("Cache storage error:", err));
 
+    } else if (parsed.analysisType === "forms") {
+      const analysis = await analyzeForms(parsed.urls[0]);
+      screenshot = analysis.screenshot;
+      responseContent = formatFormsAnalysis(parsed.urls[0], analysis);
+
+      // Cache result
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+      await storage.setCachedAnalysis({
+        url: parsed.urls[0],
+        analysisType: "forms",
+        result: { content: responseContent, screenshot } as any,
+        expiresAt,
+      }).catch(err => console.error("Cache storage error:", err));
+
+    } else if (parsed.analysisType === "images") {
+      const analysis = await analyzeImages(parsed.urls[0]);
+      screenshot = analysis.screenshot;
+      responseContent = formatImagesAnalysis(parsed.urls[0], analysis);
+
+      // Cache result
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+      await storage.setCachedAnalysis({
+        url: parsed.urls[0],
+        analysisType: "images",
+        result: { content: responseContent, screenshot } as any,
+        expiresAt,
+      }).catch(err => console.error("Cache storage error:", err));
+
+    } else if (parsed.analysisType === "headings") {
+      const analysis = await analyzeHeadings(parsed.urls[0]);
+      screenshot = analysis.screenshot;
+      responseContent = formatHeadingsAnalysis(parsed.urls[0], analysis);
+
+      // Cache result
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+      await storage.setCachedAnalysis({
+        url: parsed.urls[0],
+        analysisType: "headings",
+        result: { content: responseContent, screenshot } as any,
+        expiresAt,
+      }).catch(err => console.error("Cache storage error:", err));
+
     } else {
-      responseContent = "I couldn't determine what type of analysis you're looking for. Please ask about buttons, logos, favicon, navigation, accessibility, or comparing two URLs.";
+      responseContent = "I couldn't determine what type of analysis you're looking for. Please ask about buttons, logos, favicon, navigation, accessibility, forms, images, headings, or comparing two URLs.";
     }
 
     return { content: responseContent, screenshot, devScreenshot, prodScreenshot };

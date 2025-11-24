@@ -20,7 +20,7 @@ function isRateLimitError(error: any): boolean {
 }
 
 export interface ParsedQuestion {
-  analysisType: "buttons" | "logos" | "favicon" | "navigation" | "accessibility" | "compare" | "unknown";
+  analysisType: "buttons" | "logos" | "favicon" | "navigation" | "accessibility" | "forms" | "images" | "headings" | "compare" | "unknown";
   urls: string[];
   rawQuestion: string;
   comparisonSubtype?: "buttons" | "logos" | "favicon" | "navigation";
@@ -37,25 +37,36 @@ export async function parseUserQuestion(question: string): Promise<ParsedQuestio
               {
                 role: "system",
                 content: `You are a website analysis assistant. Parse user questions about websites and determine:
-1. What type of analysis they want (buttons, logos, favicon, navigation, accessibility, or compare)
+1. What type of analysis they want (buttons, logos, favicon, navigation, accessibility, forms, images, headings, or compare)
 2. Which URL(s) they're asking about
 
 Return JSON with this exact structure:
 {
-  "analysisType": "buttons" | "logos" | "favicon" | "navigation" | "accessibility" | "compare" | "unknown",
+  "analysisType": "buttons" | "logos" | "favicon" | "navigation" | "accessibility" | "forms" | "images" | "headings" | "compare" | "unknown",
   "urls": ["url1", "url2"],
   "rawQuestion": "the original question",
   "comparisonSubtype": "buttons" | "logos" | "favicon" | "navigation" (only if analysisType is "compare")
 }
 
-Rules:
+Analysis type detection rules:
+- analysisType "buttons" if they ask about buttons, clickable elements, or interactive controls
+- analysisType "logos" if they ask about logos, branding, or logo instances
+- analysisType "favicon" if they ask about favicon, site icon, or page icon
+- analysisType "navigation" if they ask about navigation, menu, or menu structure
+- analysisType "accessibility" if they mention ARIA, alt text, screen readers, wcag, a11y, or accessibility
+- analysisType "forms" if they ask about forms, form fields, input fields, or form controls
+- analysisType "images" if they ask about images, pictures, or image analysis
+- analysisType "headings" if they ask about headings, heading structure, or H1-H6 tags
 - analysisType "compare" if they mention dev/prod, development/production, or comparing two URLs
-- analysisType "accessibility" if they mention ARIA, alt text, screen readers, wcag, or accessibility
-- If analysisType is "compare", determine comparisonSubtype:
+- analysisType "unknown" if you cannot determine the type
+
+For "compare" analysis, also determine comparisonSubtype:
   * "buttons" if they mention buttons, clickable elements, or interactive elements
   * "logos" if they mention logos, images, or branding
   * "favicon" if they mention favicon or site icon
   * "navigation" (default) if they mention navigation, menu, or no specific element type
+
+Rules:
 - Extract all URLs mentioned (add https:// if missing)
 - If no URL found, use empty array for urls
 - Always include the rawQuestion field`
