@@ -32,7 +32,7 @@ export function AppHeader() {
             >
               <Link href="/">
                 <Sparkles className="w-4 h-4" />
-                <span className="hidden sm:inline">Ask AI</span>
+                <span className="hidden sm:inline">Fast Check</span>
               </Link>
             </Button>
 
@@ -45,7 +45,7 @@ export function AppHeader() {
             >
               <Link href="/analyze">
                 <List className="w-4 h-4" />
-                <span className="hidden sm:inline">Analyze</span>
+                <span className="hidden sm:inline">Full Report</span>
               </Link>
             </Button>
 
@@ -58,7 +58,7 @@ export function AppHeader() {
             >
               <Link href="/dashboard">
                 <LayoutDashboard className="w-4 h-4" />
-                <span className="hidden sm:inline">Dashboard</span>
+                <span className="hidden sm:inline">ScanBlue</span>
               </Link>
             </Button>
           </nav>
