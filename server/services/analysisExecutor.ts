@@ -1,6 +1,6 @@
 import type { ParsedQuestion } from "./openai";
 import type { AgentResponse } from "@shared/schema";
-import { countButtons, findLogos, checkFavicon, analyzeNavigation, compareEnvironments } from "./playwright";
+import { countButtons, findLogos, findFavicon, analyzeNavigation, compareEnvironments } from "./browserless";
 import { analyzeAccessibility } from "./accessibility";
 import { formatButtonAnalysis, formatLogoAnalysis, formatFaviconAnalysis, formatNavigationAnalysis, formatComparison, formatAccessibilityAnalysis } from "./formatter";
 import type { IStorage } from "../storage";
@@ -96,7 +96,7 @@ export async function executeAnalysis({ parsed, rawContent, storage }: AnalysisE
       }).catch(err => console.error("Cache storage error:", err));
 
     } else if (parsed.analysisType === "favicon") {
-      const analysis = await checkFavicon(parsed.urls[0]);
+      const analysis = await findFavicon(parsed.urls[0]);
       screenshot = analysis.screenshot;
       responseContent = formatFaviconAnalysis(parsed.urls[0], analysis);
 

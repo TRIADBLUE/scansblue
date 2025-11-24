@@ -2,7 +2,7 @@
 
 ## Overview
 
-Site Inspector Agent is a backend API service that provides AI-powered website analysis through natural language queries. The service uses Playwright for headless browser automation to inspect live websites and OpenAI's GPT model to parse user questions and generate conversational responses. It's designed to integrate with ConsoleBlue's Agent Chat system, providing analysis capabilities for buttons, logos, favicons, navigation structures, accessibility, and comprehensive website-wide analysis with task list generation.
+Site Inspector Agent is a backend API service that provides AI-powered website analysis through natural language queries. The service uses Browserless for headless browser automation to inspect live websites and OpenAI's GPT model to parse user questions and generate conversational responses. It's designed to integrate with ConsoleBlue's Agent Chat system, providing analysis capabilities for buttons, logos, favicons, navigation structures, accessibility, and comprehensive website-wide analysis with task list generation.
 
 ## User Preferences
 
@@ -16,8 +16,9 @@ Preferred communication style: Simple, everyday language.
 
 **Key Design Patterns**:
 - Service-oriented architecture with clear separation between routing, AI processing, and browser automation
-- Stateless API design - no persistent storage required as all analysis is performed in real-time
+- Stateless API design - all analysis is performed in real-time
 - Dual entry points for development (Vite integration) and production (static file serving)
+- Browserless integration for production browser automation
 
 **Core Services**:
 
@@ -28,11 +29,13 @@ Preferred communication style: Simple, everyday language.
    - Uses retry logic with exponential backoff for rate limit handling
    - Leverages Replit's AI Integrations service for OpenAI API access
 
-2. **Playwright Service** (`server/services/playwright.ts`)
-   - Manages browser lifecycle with singleton pattern for connection reuse
-   - Implements headless Chrome automation with security flags for containerized environments
-   - Provides specialized analysis functions for each inspection type
+2. **Browserless Service** (`server/services/browserless.ts`)
+   - Cloud-based browser automation via Browserless API
+   - Uses `/chromium/evaluate` endpoint for script execution
    - Handles URL normalization and navigation timeouts
+   - Supports both single-page and multi-page analysis
+   - Provides specialized analysis functions for each inspection type
+   - Captures screenshots for all analysis types (base64 PNG format)
 
 3. **Website Crawler Service** (`server/services/websiteCrawler.ts`)
    - Breadth-first crawl of entire websites (limit 10 pages default)
@@ -60,6 +63,7 @@ Preferred communication style: Simple, everyday language.
    - Supports all analysis types including accessibility
 
 7. **Accessibility Service** (`server/services/accessibility.ts`)
+   - Wrapper around Browserless accessibility analysis
    - Evaluates ARIA labels and accessible names coverage
    - Checks alt text presence on images
    - Validates heading structure (H1 uniqueness, no skipped levels)
@@ -82,7 +86,7 @@ Preferred communication style: Simple, everyday language.
   - Optional `webhookUrl` for batch completion notifications
   - Returns array of analysis results
   
-- `POST /api/agent/analyze-website` - **NEW** - Website-wide analysis endpoint
+- `POST /api/agent/analyze-website` - Website-wide analysis endpoint
   - Crawls entire website (up to 10 pages)
   - Generates prioritized task list
   - Analyzes for accessibility, SEO, content, performance issues
@@ -97,8 +101,9 @@ Preferred communication style: Simple, everyday language.
 **Framework**: React with TypeScript and Vite build system
 
 **Pages**:
-- `/` - Home page with agent interaction interface (existing)
-- `/analyze` - **NEW** - Website analysis interface with task list display
+- `/` - Home page with agent interaction interface and Inspector Agent logo
+- `/analyze` - Website analysis interface with task list display
+- `/dashboard` - Triad Blue Health Dashboard with brand logos and one-click analysis
 
 **UI Library**: shadcn/ui components with Radix UI primitives and Tailwind CSS for styling
 
@@ -127,13 +132,14 @@ Preferred communication style: Simple, everyday language.
 
 ### Browser Automation
 
-**Technology**: Playwright with Chromium
+**Technology**: Browserless Cloud API
 
 **Configuration**: 
-- Headless mode with security flags optimized for containerized deployments
-- No-sandbox mode for Replit environment compatibility
-- Single-process mode to minimize resource usage
-- Browser instance reuse via singleton pattern
+- Production endpoint: `https://production-sfo.browserless.io`
+- Uses `/chromium/evaluate` endpoint for custom script execution
+- Supports full Puppeteer API compatibility
+- Handles screenshot capture with base64 encoding
+- Automatic retry logic with exponential backoff
 
 **Analysis Capabilities**:
 - Interactive element counting (buttons, links, forms)
@@ -143,13 +149,13 @@ Preferred communication style: Simple, everyday language.
 - Accessibility analysis (ARIA labels, alt text, heading structure)
 - Side-by-side environment comparison
 - Screenshot capture for all analysis types (base64 PNG format)
-- **NEW** Website-wide crawling and issue detection
+- Website-wide crawling and issue detection
 
 ### Error Handling
 
 **Approach**: Comprehensive error handling at multiple layers
 - OpenAI API: Retry logic with rate limit detection
-- Playwright: Browser launch failures with descriptive error messages
+- Browserless: API error handling with descriptive messages
 - API validation: Zod schema validation for request/response contracts
 - User-facing: Conversational error messages explaining issues and suggesting solutions
 
@@ -169,19 +175,22 @@ Preferred communication style: Simple, everyday language.
    - Authentication: Provided through Replit's AI Integrations service
    - No direct API key required from user
 
-2. **Playwright Browser Automation**
-   - Chromium browser engine
-   - Requires system-level browser dependencies in production environments
-   - May not work in all containerized environments without proper setup
+2. **Browserless Cloud API**
+   - Production endpoint: `https://production-sfo.browserless.io`
+   - Authentication: API key via `BROWSERLESS_API_KEY` environment variable
+   - Chromium browser engine in the cloud
+   - Full Puppeteer API compatibility
+   - No system-level browser dependencies required
 
 ### Key NPM Packages
 
 **Backend Core**:
 - `express` - Web server framework
-- `playwright` - Browser automation
 - `openai` - OpenAI API client
 - `cors` - Cross-origin resource sharing
 - `zod` - Runtime type validation
+- `p-retry` - Retry logic with exponential backoff
+- `p-limit` - Rate limiting for concurrent requests
 
 **Database (configured)**:
 - `drizzle-orm` - TypeScript ORM
@@ -205,6 +214,7 @@ Preferred communication style: Simple, everyday language.
 Required:
 - `AI_INTEGRATIONS_OPENAI_BASE_URL` - Provided by Replit AI Integrations
 - `AI_INTEGRATIONS_OPENAI_API_KEY` - Provided by Replit AI Integrations
+- `BROWSERLESS_API_KEY` - API key from Browserless (https://browserless.io)
 
 Optional:
 - `DATABASE_URL` - PostgreSQL connection string (for caching and analysis storage)
@@ -212,44 +222,40 @@ Optional:
 
 ### System Dependencies
 
-**Critical**: Chromium browser dependencies required for Playwright
-- May require manual installation in production environments
-- Replit environment provides these automatically
-- Docker/container deployments need additional system packages
+**None required!** - Browserless handles all browser automation in the cloud. No Chromium or other system-level dependencies needed on production servers.
 
-## Recent Changes (November 23, 2025)
+## Recent Changes (November 24, 2025)
 
-### NEW: Website Analysis with Task List Generation
+### NEW: Browserless Integration for Production
 
-**Added comprehensive website-wide analysis capability:**
-- `POST /api/agent/analyze-website` endpoint that crawls entire websites
-- Discovers and analyzes up to 10 pages per crawl
-- Generates prioritized task lists based on detected issues
-- Frontend page `/analyze` for user interaction with beautiful UI
+**Replaced local Playwright with cloud-based Browserless:**
+- Eliminates system dependency issues in production environments
+- Uses Browserless `/chromium/evaluate` endpoint for script execution
+- Full Puppeteer API compatibility maintained
+- API key-based authentication for security
+- Automatic retry logic with exponential backoff
 
-**New Services:**
-- Website crawler for discovering site structure
-- Task generator that categorizes and prioritizes issues
-- Support for analysis caching at page level
+**Benefits:**
+- No system dependencies required
+- Works on any cloud platform (AWS, GCP, Heroku, etc.)
+- Better performance and reliability
+- Automatic browser pool management in the cloud
+- Easy to scale to high concurrency
 
-**New Issue Categories:**
-- Accessibility: Missing alt text, ARIA labels, heading structure
-- SEO: Missing H1, meta descriptions, heading hierarchy
-- Content: Broken links, missing images, empty headings  
-- Performance: Unoptimized images, asset loading
-- UX/Security: Future expansion areas
+**Backward compatibility maintained:**
+- Same API surface from browser automation service
+- All analysis functions work identically
+- Screenshots still captured as base64 PNG
+- Error handling consistent with previous approach
 
-**Priority System:**
-- Critical: Blocks accessibility or SEO (H1, alt text, ARIA)
-- High: Impacts user experience significantly (broken links, duplicates)
-- Medium: Content or metadata issues
-- Low: Performance optimization opportunities
+### Frontend Updates
+- New homepage with Inspector Agent logo
+- Updated header with Site Inspector branding
+- Navigation tabs: Ask AI, Analyze, Dashboard
+- Triad Blue Health Dashboard with pre-configured analysis buttons for HostsBlue, SwipesBlue, ConsoleBlue
+- Business Blueprint subscription management card
 
-**Effort Estimation:**
-- Quick: Under 30 minutes (add meta descriptions, fix alt text)
-- Medium: 1-3 hours (optimize images, refactor structure)
-- Complex: 4+ hours (major content restructuring)
-
-**Database Schema:**
-- `website_analysis` table stores crawl results, discovered pages, generated tasks, and summary
-- All analysis results cached with last-analyzed timestamp
+### Branding
+- Site Inspector logo in favicon and header
+- Inspector Agent logo as homepage title
+- Professional visual identity across all pages

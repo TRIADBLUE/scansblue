@@ -23,41 +23,44 @@ export function AppHeader() {
 
           {/* Navigation */}
           <nav className="flex items-center gap-2">
-            <Link href="/">
-              <Button
-                variant={location === "/" ? "default" : "ghost"}
-                size="sm"
-                className="gap-2"
-                data-testid="button-nav-home"
-              >
+            <Button
+              variant={location === "/" ? "default" : "ghost"}
+              size="sm"
+              className="gap-2"
+              data-testid="button-nav-home"
+              asChild
+            >
+              <Link href="/">
                 <Sparkles className="w-4 h-4" />
                 <span className="hidden sm:inline">Ask AI</span>
-              </Button>
-            </Link>
+              </Link>
+            </Button>
 
-            <Link href="/analyze">
-              <Button
-                variant={location === "/analyze" ? "default" : "ghost"}
-                size="sm"
-                className="gap-2"
-                data-testid="button-nav-analyze"
-              >
+            <Button
+              variant={location === "/analyze" ? "default" : "ghost"}
+              size="sm"
+              className="gap-2"
+              data-testid="button-nav-analyze"
+              asChild
+            >
+              <Link href="/analyze">
                 <List className="w-4 h-4" />
                 <span className="hidden sm:inline">Analyze</span>
-              </Button>
-            </Link>
+              </Link>
+            </Button>
 
-            <Link href="/dashboard">
-              <Button
-                variant={location === "/dashboard" ? "default" : "ghost"}
-                size="sm"
-                className="gap-2"
-                data-testid="button-nav-dashboard"
-              >
+            <Button
+              variant={location === "/dashboard" ? "default" : "ghost"}
+              size="sm"
+              className="gap-2"
+              data-testid="button-nav-dashboard"
+              asChild
+            >
+              <Link href="/dashboard">
                 <LayoutDashboard className="w-4 h-4" />
                 <span className="hidden sm:inline">Dashboard</span>
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </nav>
         </div>
       </div>
