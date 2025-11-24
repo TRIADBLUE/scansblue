@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Sparkles, List, LayoutDashboard } from "lucide-react";
+import { List, LayoutDashboard } from "lucide-react";
+import siteInspectorLogo from "@assets/siteinspetor-logo_1764004383843.png";
 
 export function AppHeader() {
   const [location] = useLocation();
@@ -11,11 +12,12 @@ export function AppHeader() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo/Brand */}
           <Link href="/">
-            <a className="flex items-center gap-2 font-bold text-lg hover:opacity-80 transition-opacity">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <span className="hidden sm:inline">Site Inspector</span>
+            <a className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+              <img 
+                src={siteInspectorLogo} 
+                alt="Site Inspector"
+                className="h-8 object-contain"
+              />
             </a>
           </Link>
 
