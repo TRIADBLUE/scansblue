@@ -8,6 +8,7 @@ import { Loader2, Search, Sparkles, Globe, Code } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { AgentResponse } from "@shared/schema";
+import agentLogo from "@assets/inspectoragent-logo_1764006346092.png";
 
 export default function Home() {
   const [question, setQuestion] = useState("");
@@ -62,13 +63,12 @@ export default function Home() {
       <div className="container max-w-5xl mx-auto px-4 py-8 sm:py-12">
         {/* Header */}
         <div className="text-center mb-8 sm:mb-12">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary text-primary-foreground">
-              <Sparkles className="w-6 h-6" />
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
-              Site Inspector Agent
-            </h1>
+          <div className="flex items-center justify-center mb-4">
+            <img 
+              src={agentLogo}
+              alt="Inspector Agent"
+              className="h-16 sm:h-20 object-contain"
+            />
           </div>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Ask natural language questions about any website. Powered by AI and browser automation.

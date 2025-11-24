@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { List, LayoutDashboard, Sparkles } from "lucide-react";
-import siteInspectorLogo from "@assets/siteinspetor-logo_1764004383843.png";
+import siteInspectorLogo from "@assets/siteinspetor-logo_1764006394558.png";
 
 export function AppHeader() {
   const [location] = useLocation();
