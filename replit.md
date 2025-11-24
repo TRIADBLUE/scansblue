@@ -8,6 +8,13 @@ Site Inspector Agent is a backend API service that provides AI-powered website a
 
 Preferred communication style: Simple, everyday language.
 
+## Design Specifications
+
+**Button Styling Standards** (for Agent Builder reference):
+- Padding: 10px all directions
+- Margin: 0px all directions
+- Border Radius: 7px (edges curve)
+
 ## System Architecture
 
 ### Backend Architecture
