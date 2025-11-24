@@ -12,28 +12,12 @@ export default function WebsiteAnalysis() {
 
   const analysisMutation = useMutation({
     mutationFn: async (siteUrl: string) => {
-      // Extract URL from natural language or direct URL
-      let urlToAnalyze = siteUrl.trim();
-      
-      // Simple URL extraction: look for domain patterns or known websites
-      const urlMatch = urlToAnalyze.match(/(?:(?:https?:\/\/)?(?:www\.)?)?([a-zA-Z0-9-]+(?:\.[a-zA-Z]{2,})+)/);
-      if (urlMatch) {
-        urlToAnalyze = urlMatch[1];
-      }
-      
       const res = await fetch("/api/agent/analyze-website", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: urlToAnalyze }),
+        body: JSON.stringify({ url: siteUrl }),
       });
-      if (!res.ok) {
-        try {
-          const errorData = await res.json();
-          throw new Error(errorData.error || "Failed to analyze website");
-        } catch {
-          throw new Error("Failed to analyze website. Please check the URL and try again.");
-        }
-      }
+      if (!res.ok) throw new Error(await res.text());
       return res.json() as Promise<WebsiteAnalysisResponse>;
     },
   });
@@ -84,8 +68,8 @@ export default function WebsiteAnalysis() {
         <Card className="p-6 mb-8 bg-slate-800 border-slate-700">
           <div className="flex gap-2">
             <Input
-              type="text"
-              placeholder="Enter website URL or question (e.g., example.com or 'analyze example.com')"
+              type="url"
+              placeholder="Enter website URL (e.g., example.com or https://example.com)"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleAnalyze()}
