@@ -100,7 +100,13 @@ export type BatchAgentResponse = z.infer<typeof batchAgentResponseSchema>;
 // Internal analysis result types
 export interface ButtonAnalysis {
   total: number;
-  breakdown: { location: string; count: number }[];
+  buttons: {
+    text: string;
+    link?: string;
+    location: string;
+    state?: string;
+    styling?: string;
+  }[];
   screenshot?: string;
 }
 
@@ -112,6 +118,8 @@ export interface LogoAnalysis {
     width: number;
     height: number;
     location: string;
+    className?: string;
+    attributes?: Record<string, string>;
   }[];
   screenshot?: string;
 }
@@ -129,16 +137,12 @@ export interface NavigationAnalysis {
   structure: {
     label: string;
     href: string;
+    children?: {
+      label: string;
+      href: string;
+    }[];
   }[];
   screenshot?: string;
-}
-
-export interface ComparisonResult {
-  devResult: any;
-  prodResult: any;
-  differences: string[];
-  devScreenshot?: string;
-  prodScreenshot?: string;
 }
 
 export interface AccessibilityAnalysis {
@@ -159,11 +163,53 @@ export interface AccessibilityAnalysis {
   screenshot?: string;
 }
 
-// Parsed question schema for OpenAI processing
-export const parsedQuestionSchema = z.object({
-  analysisType: z.enum(["buttons", "logos", "favicon", "navigation", "compare", "accessibility"]),
-  urls: z.array(z.string()).min(1),
-  comparisonSubtype: z.enum(["buttons", "logos", "favicon", "navigation"]).optional(),
-});
+export interface FormsAnalysis {
+  totalForms: number;
+  forms: {
+    id?: string;
+    name?: string;
+    method: string;
+    action?: string;
+    fields: {
+      name?: string;
+      type: string;
+      required: boolean;
+      label?: string;
+    }[];
+  }[];
+  screenshot?: string;
+}
 
-export type ParsedQuestion = z.infer<typeof parsedQuestionSchema>;
+export interface ImagesAnalysis {
+  totalImages: number;
+  images: {
+    src: string;
+    alt: string;
+    width?: number;
+    height?: number;
+    location: string;
+  }[];
+  missingAlt: number;
+  altCoverage: number;
+  screenshot?: string;
+}
+
+export interface HeadingStructure {
+  headings: {
+    level: number;
+    text: string;
+    id?: string;
+  }[];
+  issues: string[];
+  h1Count: number;
+  isValid: boolean;
+  screenshot?: string;
+}
+
+export interface ComparisonResult {
+  devResult: any;
+  prodResult: any;
+  differences: string[];
+  devScreenshot?: string;
+  prodScreenshot?: string;
+}

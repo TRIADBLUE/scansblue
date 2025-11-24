@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Globe, Zap, Eye } from "lucide-react";
+import { Loader2, Globe, Zap, Eye, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { AgentResponse } from "@shared/schema";
@@ -12,6 +13,7 @@ import agentLogo from "@assets/inspectoragent-logo_1764006346092.png";
 
 export default function Home() {
   const [url, setUrl] = useState("");
+  const [customQuestion, setCustomQuestion] = useState("");
   const [analysisType, setAnalysisType] = useState<string | null>(null);
   const [result, setResult] = useState<AgentResponse | null>(null);
   const { toast } = useToast();
@@ -38,11 +40,14 @@ export default function Home() {
   });
 
   const analysisButtons = [
-    { label: "Count Buttons", question: `How many buttons are on ${url}?` },
-    { label: "Find Logos", question: `Find all logos on ${url}` },
-    { label: "Check Favicon", question: `What is the favicon on ${url}?` },
-    { label: "Analyze Navigation", question: `Analyze the navigation structure on ${url}` },
-    { label: "Accessibility", question: `Check accessibility issues on ${url}` },
+    { label: "Buttons", desc: "List all buttons with text, links, location, state", question: `List all buttons on ${url} with their text, links, location on page, and styling state` },
+    { label: "Logos", desc: "Find and screenshot all logo instances", question: `Find all logo instances on ${url}, show where they appear and their attributes` },
+    { label: "Favicon", desc: "Check favicon presence", question: `What is the favicon on ${url}?` },
+    { label: "Navigation", desc: "Visual tree of menu structure", question: `Analyze the navigation structure on ${url} as a visual tree with menu hierarchy, links, and button names` },
+    { label: "Accessibility", desc: "Check accessibility issues", question: `Check accessibility issues on ${url}` },
+    { label: "Forms", desc: "Extract form fields and types", question: `Find all forms on ${url} and list their fields, types, and required status` },
+    { label: "Images", desc: "Analyze all images on page", question: `Analyze all images on ${url} including alt text coverage` },
+    { label: "Headings", desc: "Check heading structure", question: `Analyze the heading structure on ${url} for H1-H6 hierarchy and issues` },
   ];
 
   const handleAnalysis = (question: string, type: string) => {
@@ -58,11 +63,32 @@ export default function Home() {
     analysisMutation.mutate(question);
   };
 
+  const handleCustomAnalysis = () => {
+    if (!url.trim()) {
+      toast({
+        title: "URL Required",
+        description: "Please enter a website URL",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!customQuestion.trim()) {
+      toast({
+        title: "Question Required",
+        description: "Please enter a question",
+        variant: "destructive",
+      });
+      return;
+    }
+    setAnalysisType("Custom");
+    analysisMutation.mutate(customQuestion);
+  };
+
   const isLoading = analysisMutation.isPending;
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-5xl mx-auto px-4 py-8 sm:py-12">
+      <div className="container max-w-6xl mx-auto px-4 py-8 sm:py-12">
         {/* Header */}
         <div className="text-center mb-8 sm:mb-12">
           <div className="flex items-center justify-center mb-4">
@@ -105,6 +131,7 @@ export default function Home() {
                 variant="outline"
                 onClick={() => {
                   setUrl("");
+                  setCustomQuestion("");
                   setResult(null);
                   analysisMutation.reset();
                 }}
@@ -121,31 +148,77 @@ export default function Home() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="w-5 h-5" />
-              Analysis Types
+              Quick Analysis
             </CardTitle>
             <CardDescription>
               Choose what to analyze on the website
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {analysisButtons.map((btn) => (
-                <Button
-                  key={btn.label}
-                  data-testid={`button-analysis-${btn.label.toLowerCase().replace(/\s+/g, "-")}`}
-                  onClick={() => handleAnalysis(btn.question, btn.label)}
-                  disabled={isLoading || !url.trim()}
-                  variant={analysisType === btn.label && isLoading ? "default" : "outline"}
-                  className="justify-start"
-                >
-                  {analysisType === btn.label && isLoading ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Eye className="w-4 h-4 mr-2" />
-                  )}
-                  {btn.label}
-                </Button>
+                <div key={btn.label} className="space-y-1">
+                  <Button
+                    data-testid={`button-analysis-${btn.label.toLowerCase().replace(/\s+/g, "-")}`}
+                    onClick={() => handleAnalysis(btn.question, btn.label)}
+                    disabled={isLoading || !url.trim()}
+                    variant={analysisType === btn.label && isLoading ? "default" : "outline"}
+                    className="w-full justify-start"
+                    size="sm"
+                  >
+                    {analysisType === btn.label && isLoading ? (
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    ) : (
+                      <Eye className="w-3 h-3 mr-1" />
+                    )}
+                    {btn.label}
+                  </Button>
+                  <p className="text-xs text-muted-foreground px-1">{btn.desc}</p>
+                </div>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Custom Question Card */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5" />
+              Free-Form Question
+            </CardTitle>
+            <CardDescription>
+              Ask any custom question about the website using natural language
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <Textarea
+                data-testid="input-custom-question"
+                placeholder="e.g., Are there any broken links? How many external links exist? Check if the site is mobile responsive..."
+                value={customQuestion}
+                onChange={(e) => setCustomQuestion(e.target.value)}
+                disabled={isLoading}
+                className="min-h-24 resize-none"
+              />
+              <Button
+                data-testid="button-analyze-custom"
+                onClick={handleCustomAnalysis}
+                disabled={isLoading || !url.trim() || !customQuestion.trim()}
+                className="w-full"
+              >
+                {isLoading && analysisType === "Custom" ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Ask Question
+                  </>
+                )}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -156,14 +229,14 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="w-5 h-5" />
-                Analysis Result
+                Analysis Result - {analysisType}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="prose prose-sm max-w-none">
                 <div
                   data-testid="text-result"
-                  className="whitespace-pre-wrap text-foreground leading-relaxed"
+                  className="whitespace-pre-wrap text-foreground leading-relaxed text-sm"
                 >
                   {result.content}
                 </div>

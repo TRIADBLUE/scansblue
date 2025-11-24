@@ -6,6 +6,9 @@ import type {
   NavigationAnalysis,
   ComparisonResult,
   AccessibilityAnalysis,
+  FormsAnalysis,
+  ImagesAnalysis,
+  HeadingStructure,
 } from "@shared/schema";
 
 const BROWSERLESS_URL = "https://production-sfo.browserless.io";
@@ -64,8 +67,7 @@ export async function countButtons(url: string): Promise<ButtonAnalysis> {
   const script = `
     (() => {
       const buttons = Array.from(document.querySelectorAll('button, input[type="button"], input[type="submit"], [role="button"]'));
-      const breakdown = {};
-      buttons.forEach((btn) => {
+      const buttonList = buttons.map((btn) => {
         let location = "unknown";
         if (btn.closest("header, [role='banner']")) location = "header";
         else if (btn.closest("nav, [role='navigation']")) location = "navigation";
@@ -73,11 +75,21 @@ export async function countButtons(url: string): Promise<ButtonAnalysis> {
         else if (btn.closest("main, [role='main']")) location = "main content";
         else if (btn.closest("aside, [role='complementary']")) location = "sidebar";
         else if (btn.closest("form")) location = "form";
-        breakdown[location] = (breakdown[location] || 0) + 1;
+        
+        const style = window.getComputedStyle(btn);
+        const styling = \`bg:\${style.backgroundColor}, text:\${style.color}, cursor:\${style.cursor}\`;
+        
+        return {
+          text: btn.textContent?.trim() || btn.getAttribute('aria-label') || btn.value || 'Unlabeled',
+          link: btn.tagName === 'A' ? btn.href : (btn.tagName === 'BUTTON' && btn.getAttribute('onclick') ? 'has onclick' : undefined),
+          location,
+          state: btn.getAttribute('disabled') ? 'disabled' : 'enabled',
+          styling
+        };
       });
       return {
         total: buttons.length,
-        breakdown: Object.entries(breakdown).map(([location, count]) => ({ location, count }))
+        buttons: buttonList
       };
     })()
   `;
@@ -95,20 +107,29 @@ export async function findLogos(url: string): Promise<LogoAnalysis> {
           const src = img.src.toLowerCase();
           const alt = img.alt.toLowerCase();
           const className = img.className.toLowerCase();
-          return src.includes('logo') || alt.includes('logo') || className.includes('logo');
+          const id = (img.id || '').toLowerCase();
+          return src.includes('logo') || alt.includes('logo') || className.includes('logo') || id.includes('logo');
         })
         .map((img) => {
-          const rect = img.getBoundingClientRect();
           let location = "unknown";
           if (img.closest("header, [role='banner']")) location = "header";
           else if (img.closest("nav")) location = "navigation";
           else if (img.closest("footer")) location = "footer";
+          else if (img.closest("main, [role='main']")) location = "main content";
+          
+          const attributes: Record<string, string> = {};
+          Array.from(img.attributes).forEach(attr => {
+            attributes[attr.name] = attr.value;
+          });
+          
           return {
             src: img.src,
             alt: img.alt || "",
-            width: rect.width,
-            height: rect.height,
+            width: img.naturalWidth || img.width,
+            height: img.naturalHeight || img.height,
             location,
+            className: img.className,
+            attributes
           };
         });
       return {
@@ -160,7 +181,8 @@ export async function analyzeNavigation(url: string): Promise<NavigationAnalysis
             seenHrefs.add(href);
             navItems.push({
               label: link.textContent?.trim() || link.getAttribute('aria-label') || 'Unlabeled',
-              href: href
+              href: href,
+              children: []
             });
           }
         });
@@ -168,13 +190,121 @@ export async function analyzeNavigation(url: string): Promise<NavigationAnalysis
       
       return {
         menuItems: navItems.length,
-        structure: navItems.slice(0, 20)
+        structure: navItems.slice(0, 50)
       };
     })()
   `;
 
   const result = await runScript(url, script);
   return result as NavigationAnalysis;
+}
+
+export async function analyzeForms(url: string): Promise<FormsAnalysis> {
+  const script = `
+    (() => {
+      const forms = Array.from(document.querySelectorAll('form'));
+      const formsList = forms.map((form) => {
+        const inputs = Array.from(form.querySelectorAll('input, textarea, select'));
+        const fields = inputs.map((input: any) => {
+          const label = form.querySelector(\`label[for="\${input.id}"]\`)?.textContent?.trim();
+          return {
+            name: input.name,
+            type: input.type || input.tagName.toLowerCase(),
+            required: input.required || input.getAttribute('required') === 'required',
+            label: label
+          };
+        });
+        
+        return {
+          id: form.id,
+          name: form.name,
+          method: (form.method || 'GET').toUpperCase(),
+          action: form.action,
+          fields
+        };
+      });
+      
+      return {
+        totalForms: forms.length,
+        forms: formsList
+      };
+    })()
+  `;
+
+  const result = await runScript(url, script);
+  return result as FormsAnalysis;
+}
+
+export async function analyzeImages(url: string): Promise<ImagesAnalysis> {
+  const script = `
+    (() => {
+      const images = Array.from(document.querySelectorAll('img'));
+      const imagesList = images.map((img) => {
+        let location = "unknown";
+        if (img.closest("header, [role='banner']")) location = "header";
+        else if (img.closest("nav")) location = "navigation";
+        else if (img.closest("footer")) location = "footer";
+        else if (img.closest("main, [role='main']")) location = "main content";
+        
+        return {
+          src: img.src,
+          alt: img.alt || "",
+          width: img.naturalWidth || img.width,
+          height: img.naturalHeight || img.height,
+          location
+        };
+      });
+      
+      const withAlt = imagesList.filter(img => img.alt.trim()).length;
+      
+      return {
+        totalImages: images.length,
+        images: imagesList,
+        missingAlt: images.length - withAlt,
+        altCoverage: images.length > 0 ? Math.round((withAlt / images.length) * 100) : 100
+      };
+    })()
+  `;
+
+  const result = await runScript(url, script);
+  return result as ImagesAnalysis;
+}
+
+export async function analyzeHeadings(url: string): Promise<HeadingStructure> {
+  const script = `
+    (() => {
+      const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+      const headingsList = headings.map((h) => ({
+        level: parseInt(h.tagName[1]),
+        text: h.textContent?.trim() || "",
+        id: h.id
+      }));
+      
+      const h1s = headingsList.filter(h => h.level === 1).length;
+      const issues = [];
+      
+      if (h1s === 0) issues.push('Missing H1 tag');
+      if (h1s > 1) issues.push('Multiple H1 tags found');
+      
+      const levels = headingsList.map(h => h.level).sort();
+      for (let i = 0; i < levels.length - 1; i++) {
+        if (levels[i + 1] - levels[i] > 1) {
+          issues.push(\`Heading level jumped from H\${levels[i]} to H\${levels[i + 1]}\`);
+          break;
+        }
+      }
+      
+      return {
+        headings: headingsList,
+        issues,
+        h1Count: h1s,
+        isValid: issues.length === 0
+      };
+    })()
+  `;
+
+  const result = await runScript(url, script);
+  return result as HeadingStructure;
 }
 
 export async function analyzeAccessibility(url: string): Promise<AccessibilityAnalysis> {
