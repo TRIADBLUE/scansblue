@@ -11,15 +11,15 @@ export function AppHeader() {
       <div className="container max-w-6xl mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo/Brand */}
-          <Link href="/">
-            <a className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <Button variant="ghost" size="sm" asChild className="h-auto p-0">
+            <Link href="/">
               <img 
                 src={siteInspectorLogo} 
                 alt="Site Inspector"
                 className="h-8 object-contain"
               />
-            </a>
-          </Link>
+            </Link>
+          </Button>
 
           {/* Navigation */}
           <nav className="flex items-center gap-2">
