@@ -32,7 +32,7 @@ if (!API_KEY) {
   console.warn("Browserless API key not configured for website crawler");
 }
 
-export async function crawlWebsite(startUrl: string, maxPages: number = 10): Promise<{ pages: CrawlResult[]; allUrls: Set<string> }> {
+export async function crawlWebsite(startUrl: string, maxPages: number = 50): Promise<{ pages: CrawlResult[]; allUrls: Set<string> }> {
   if (!API_KEY) {
     throw new Error("Browserless API key not configured");
   }

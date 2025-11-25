@@ -45,6 +45,7 @@ export const websiteAnalysisRequestSchema = z.object({
     .min(1, "URL cannot be empty")
     .transform(url => url.startsWith("http") ? url : `https://${url}`)
     .pipe(z.string().url("Must be a valid URL")),
+  maxPages: z.number().int().min(1).max(100).default(50).optional(),
   webhookUrl: z.string().url().optional(),
 });
 

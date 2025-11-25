@@ -186,7 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { url, webhookUrl } = validation.data;
+      const { url, maxPages = 50, webhookUrl } = validation.data;
 
       // Check if we have recent analysis for this URL
       const existing = await storage.getWebsiteAnalysis(url);
@@ -212,8 +212,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(response);
       }
 
-      // Crawl the website
-      const { pages } = await crawlWebsite(url);
+      // Crawl the website with configurable page limit
+      const { pages } = await crawlWebsite(url, maxPages);
       
       // Generate task list
       const { tasks, summary } = generateTasks(pages);
