@@ -9,6 +9,7 @@ import type {
   ImagesAnalysis,
   HeadingStructure,
 } from "@shared/schema";
+import type { ComprehensiveAnalysis } from "./browserless";
 
 export function formatButtonAnalysis(url: string, analysis: ButtonAnalysis): string {
   if (analysis.total === 0) {
@@ -249,4 +250,119 @@ export function formatAccessibilityAnalysis(url: string, analysis: Accessibility
   }
 
   return response.trim();
+}
+
+export function formatComprehensiveAnalysis(url: string, analysis: ComprehensiveAnalysis): string {
+  let response = `\n=== COMPREHENSIVE WEBSITE ANALYSIS: ${url} ===\n\n`;
+
+  // Overall Assessment
+  response += `OVERALL TENDENCIES & STRUCTURE QUALITY\n`;
+  response += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  response += `Navigation Complexity: ${analysis.navigation.menuItems} menu items - `;
+  response += analysis.navigation.menuItems > 10 ? "Complex structure" : analysis.navigation.menuItems > 5 ? "Moderate structure" : "Simple structure";
+  response += `\n`;
+  response += `Interactive Elements: ${analysis.buttons.total} buttons, ${analysis.forms.totalForms} forms\n`;
+  response += `Content Assets: ${analysis.images.totalImages} images, ${analysis.logos.logos.length} branded logos\n`;
+  response += `Media Optimization: ${analysis.images.altCoverage}% images have alt text\n\n`;
+
+  // SEO PRIORITIES
+  response += `SEO-MINDED PRIORITY POINTS\n`;
+  response += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  response += `Heading Structure: ${analysis.headings.isValid ? '✓ Valid - proper H1-H6 hierarchy' : '✗ Issues detected in heading structure'}\n`;
+  if (analysis.headings.h1Count !== 1) {
+    response += `  ⚠️ H1 Count: ${analysis.headings.h1Count} (should be exactly 1)\n`;
+  }
+  response += `Meta Optimization: Alt text coverage at ${analysis.images.altCoverage}%\n`;
+  response += `Page Accessibility: ${analysis.accessibility.ariaLabels.coverage.toFixed(0)}% ARIA coverage\n\n`;
+
+  // STRUCTURE & BEHAVIOR ANALYSIS
+  response += `STRUCTURE & BEHAVIOR PATTERNS\n`;
+  response += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  response += `Button Distribution: ${analysis.buttons.buttons.length > 0 ? analysis.buttons.buttons.map(b => b.location).reduce((acc: Record<string, number>, loc: string) => { acc[loc] = (acc[loc] || 0) + 1; return acc; }, {}) : 'No buttons found'}\n`;
+  
+  const locationCounts: Record<string, number> = {};
+  analysis.buttons.buttons.forEach((b: any) => {
+    locationCounts[b.location] = (locationCounts[b.location] || 0) + 1;
+  });
+  Object.entries(locationCounts).forEach(([loc, count]) => {
+    response += `  • ${loc}: ${count} button${count > 1 ? 's' : ''}\n`;
+  });
+
+  response += `\nForm Accessibility: ${analysis.forms.forms.length} form${analysis.forms.forms.length !== 1 ? 's' : ''} detected\n`;
+  response += `Logo Presence: ${analysis.logos.logos.length > 0 ? `${analysis.logos.logos.length} branded logo${analysis.logos.logos.length > 1 ? 's' : ''} in ${analysis.logos.logos.map(l => l.location).join(', ')}` : 'No branded logos detected'}\n\n`;
+
+  // EXECUTION CONCERNS & CALL-OUTS
+  response += `EXECUTION CONCERNS & CALL-OUTS\n`;
+  response += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  const concerns: string[] = [];
+  
+  if (analysis.headings.issues.length > 0) {
+    concerns.push(`Heading Issues: ${analysis.headings.issues.join(', ')}`);
+  }
+  if (analysis.images.missingAlt > 0) {
+    concerns.push(`Missing Alt Text: ${analysis.images.missingAlt} image${analysis.images.missingAlt > 1 ? 's' : ''} lack descriptions`);
+  }
+  if (analysis.accessibility.ariaLabels.coverage < 80) {
+    concerns.push(`Low ARIA Coverage: ${analysis.accessibility.ariaLabels.coverage.toFixed(0)}% of interactive elements have accessible names`);
+  }
+  if (analysis.navigation.menuItems === 0) {
+    concerns.push(`Navigation Gap: No navigation structure detected`);
+  }
+  if (analysis.buttons.total === 0) {
+    concerns.push(`No Calls-to-Action: Zero button elements detected on page`);
+  }
+  if (analysis.forms.totalForms === 0) {
+    concerns.push(`Form Gap: No form elements for user conversion`);
+  }
+
+  if (concerns.length > 0) {
+    concerns.forEach(c => response += `⚠️ ${c}\n`);
+  } else {
+    response += `✓ No critical structure issues detected\n`;
+  }
+  response += `\n`;
+
+  // BUTTON/LINK TRENDS & INCONSISTENCIES
+  response += `BUTTON/LINK TRENDS & INCONSISTENCIES\n`;
+  response += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  response += `Total Buttons: ${analysis.buttons.total}\n`;
+  if (analysis.buttons.total > 0) {
+    const states = analysis.buttons.buttons.reduce((acc: Record<string, number>, btn: any) => {
+      acc[btn.state] = (acc[btn.state] || 0) + 1;
+      return acc;
+    }, {});
+    Object.entries(states).forEach(([state, count]) => {
+      response += `  • ${state}: ${count}\n`;
+    });
+  }
+  response += `\nLink Consistency:\n`;
+  const linksWithHref = analysis.buttons.buttons.filter((b: any) => b.link).length;
+  response += `  • Buttons with href: ${linksWithHref}\n`;
+  response += `  • Form actions: ${analysis.forms.forms.filter((f: any) => f.action).length}/${analysis.forms.totalForms}\n\n`;
+
+  // BUSINESS-LEVEL INSIGHTS
+  response += `BUSINESS-LEVEL RECOMMENDATIONS\n`;
+  response += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  response += `Priority 1: Structure & Organization\n`;
+  if (analysis.navigation.menuItems > 0) {
+    response += `  ✓ Navigation is established with ${analysis.navigation.menuItems} items\n`;
+  } else {
+    response += `  ✗ Add clear navigation structure to improve UX\n`;
+  }
+  
+  response += `\nPriority 2: Conversion Optimization\n`;
+  if (analysis.buttons.total > 0) {
+    response += `  ✓ ${analysis.buttons.total} CTAs available for user engagement\n`;
+  } else {
+    response += `  ✗ Add calls-to-action buttons to drive conversions\n`;
+  }
+  
+  response += `\nPriority 3: Accessibility & Inclusivity\n`;
+  response += `  ${analysis.accessibility.ariaLabels.coverage >= 80 ? '✓' : '✗'} ARIA labels: ${analysis.accessibility.ariaLabels.coverage.toFixed(0)}% coverage\n`;
+  response += `  ${analysis.images.altCoverage >= 80 ? '✓' : '✗'} Alt text: ${analysis.images.altCoverage}% coverage\n`;
+
+  response += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  response += `End of Comprehensive Analysis\n`;
+
+  return response;
 }

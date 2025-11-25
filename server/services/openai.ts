@@ -20,7 +20,7 @@ function isRateLimitError(error: any): boolean {
 }
 
 export interface ParsedQuestion {
-  analysisType: "buttons" | "logos" | "favicon" | "navigation" | "accessibility" | "forms" | "images" | "headings" | "compare" | "unknown";
+  analysisType: "buttons" | "logos" | "favicon" | "navigation" | "accessibility" | "forms" | "images" | "headings" | "compare" | "comprehensive" | "unknown";
   urls: string[];
   rawQuestion: string;
   comparisonSubtype?: "buttons" | "logos" | "favicon" | "navigation";
@@ -37,12 +37,12 @@ export async function parseUserQuestion(question: string): Promise<ParsedQuestio
               {
                 role: "system",
                 content: `You are a website analysis assistant. Parse user questions about websites and determine:
-1. What type of analysis they want (buttons, logos, favicon, navigation, accessibility, forms, images, headings, or compare)
+1. What type of analysis they want (buttons, logos, favicon, navigation, accessibility, forms, images, headings, compare, or comprehensive)
 2. Which URL(s) they're asking about
 
 Return JSON with this exact structure:
 {
-  "analysisType": "buttons" | "logos" | "favicon" | "navigation" | "accessibility" | "forms" | "images" | "headings" | "compare" | "unknown",
+  "analysisType": "buttons" | "logos" | "favicon" | "navigation" | "accessibility" | "forms" | "images" | "headings" | "compare" | "comprehensive" | "unknown",
   "urls": ["url1", "url2"],
   "rawQuestion": "the original question",
   "comparisonSubtype": "buttons" | "logos" | "favicon" | "navigation" (only if analysisType is "compare")
@@ -58,6 +58,7 @@ Analysis type detection rules:
 - analysisType "images" if they ask about images, pictures, or image analysis
 - analysisType "headings" if they ask about headings, heading structure, or H1-H6 tags
 - analysisType "compare" if they mention dev/prod, development/production, or comparing two URLs
+- analysisType "comprehensive" if they ask for complete analysis, full audit, overall assessment, quality review, business analysis, or mentions structure quality, SEO priorities, execution concerns, button/link trends, inconsistencies
 - analysisType "unknown" if you cannot determine the type
 
 For "compare" analysis, also determine comparisonSubtype:

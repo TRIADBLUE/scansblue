@@ -9,6 +9,7 @@ import {
   analyzeForms,
   analyzeImages,
   analyzeHeadings,
+  performComprehensiveAnalysis,
 } from "./browserless";
 import { analyzeAccessibility } from "./accessibility";
 import {
@@ -21,6 +22,7 @@ import {
   formatFormsAnalysis,
   formatImagesAnalysis,
   formatHeadingsAnalysis,
+  formatComprehensiveAnalysis,
 } from "./formatter";
 import type { IStorage } from "../storage";
 
@@ -198,8 +200,22 @@ export async function executeAnalysis({ parsed, rawContent, storage }: AnalysisE
         expiresAt,
       }).catch(err => console.error("Cache storage error:", err));
 
+    } else if (parsed.analysisType === "comprehensive") {
+      const analysis = await performComprehensiveAnalysis(parsed.urls[0]);
+      screenshot = analysis.screenshot;
+      responseContent = formatComprehensiveAnalysis(parsed.urls[0], analysis);
+
+      // Cache result
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+      await storage.setCachedAnalysis({
+        url: parsed.urls[0],
+        analysisType: "comprehensive",
+        result: { content: responseContent, screenshot } as any,
+        expiresAt,
+      }).catch(err => console.error("Cache storage error:", err));
+
     } else {
-      responseContent = "I couldn't determine what type of analysis you're looking for. Please ask about buttons, logos, favicon, navigation, accessibility, forms, images, headings, or comparing two URLs.";
+      responseContent = "I couldn't determine what type of analysis you're looking for. Please ask about buttons, logos, favicon, navigation, accessibility, forms, images, headings, comprehensive analysis, or comparing two URLs.";
     }
 
     return { content: responseContent, screenshot, devScreenshot, prodScreenshot };

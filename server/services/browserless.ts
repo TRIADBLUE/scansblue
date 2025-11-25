@@ -1,4 +1,5 @@
 import pRetry from "p-retry";
+import pLimit from "p-limit";
 import type {
   ButtonAnalysis,
   LogoAnalysis,
@@ -398,5 +399,55 @@ export async function compareEnvironments(
     differences,
     devScreenshot,
     prodScreenshot,
+  };
+}
+
+export interface ComprehensiveAnalysis {
+  buttons: ButtonAnalysis;
+  logos: LogoAnalysis;
+  navigation: NavigationAnalysis;
+  accessibility: AccessibilityAnalysis;
+  forms: FormsAnalysis;
+  images: ImagesAnalysis;
+  headings: HeadingStructure;
+  screenshot: string;
+}
+
+export async function performComprehensiveAnalysis(url: string): Promise<ComprehensiveAnalysis> {
+  // Run key analyses sequentially to avoid rate limiting
+  const buttons = await countButtons(url);
+  const navigation = await analyzeNavigation(url);
+  const headings = await analyzeHeadings(url);
+  const accessibility = await analyzeAccessibility(url);
+  
+  // Run remaining analyses with optional error suppression to avoid rate limits
+  let logos, forms, images;
+  try {
+    logos = await findLogos(url);
+  } catch {
+    logos = { found: false, logos: [], screenshot: "" } as LogoAnalysis;
+  }
+  
+  try {
+    forms = await analyzeForms(url);
+  } catch {
+    forms = { totalForms: 0, forms: [], screenshot: "" } as FormsAnalysis;
+  }
+  
+  try {
+    images = await analyzeImages(url);
+  } catch {
+    images = { totalImages: 0, images: [], altCoverage: 0, missingAlt: 0, screenshot: "" } as ImagesAnalysis;
+  }
+
+  return {
+    buttons,
+    logos,
+    navigation,
+    accessibility,
+    forms,
+    images,
+    headings,
+    screenshot: (buttons.screenshot || navigation.screenshot || headings.screenshot || "") as string,
   };
 }

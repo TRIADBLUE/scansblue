@@ -233,28 +233,42 @@ Optional:
 
 ## Recent Changes (November 25, 2025)
 
-### Navigation Rebranding
+### NEW: Comprehensive Website Analysis Upgrade
+**Enhanced `/api/agent` endpoint with business-level analysis:**
+- ✓ New "comprehensive" analysis type for full website audits
+- ✓ Triggers on natural language like "complete analysis", "full audit", "structure quality", "business analysis", "SEO priorities"
+- ✓ Delivers multi-section report with:
+  - Overall Tendencies & Structure Quality Assessment
+  - SEO-Minded Priority Points
+  - Structure & Behavior Patterns
+  - Execution Concerns & Call-Outs
+  - Button/Link Trends & Inconsistencies
+  - Business-Level Recommendations (3 priority tiers)
+- ✓ Combines 7 analyses: Buttons, Navigation, Headings, Accessibility, Logos, Forms, Images
+- ✓ Rate-limited execution to prevent Browserless throttling
+- ✓ Graceful error handling - if optional analyses fail, core analysis continues
+- ✓ Full screenshot included with report
+
+### Natural Language Recognition
+OpenAI now recognizes comprehensive analysis requests like:
+- "Complete analysis of example.com"
+- "Give me a full audit of businessblueprint.io"
+- "Analyze structure quality, SEO priorities, and execution concerns"
+- "Show button trends and inconsistencies"
+- "Business-level website analysis"
+
+### Previous: Navigation Rebranding
 **Updated menu labels and page titles:**
 - "Ask AI" → "Fast Check"
 - "Analyze" → "Full Report"
 - "Dashboard" → "ScanBlue"
 
-### Fixed Browserless Integration
-**Fixed all browser automation endpoints:**
-- ✓ Health endpoint now correctly checks Browserless (not Playwright)
-- ✓ Fixed type casting issues in all analysis functions
-- ✓ Resolved template literal conflicts in logos and forms analysis
-- ✓ All 8 analysis types working: Buttons, Logos, Favicon, Navigation, Forms, Images, Headings, Accessibility
-- ✓ All screenshots are captured and returned as base64 PNG data
-- ✓ Error handling improved with descriptive messages
-
-**All features tested and verified:**
-- ✓ /api/health - Browserless connectivity check
-- ✓ /api/agent - Natural language analysis requests
-- ✓ /api/agent/batch - Batch analysis support
-- ✓ All page routes: /, /analyze, /dashboard
-- ✓ Navigation between pages working
-- ✓ All quick analysis buttons functional
+**Fixed Browserless Integration:**
+- ✓ Health endpoint checks Browserless cloud service
+- ✓ Fixed type casting across all analysis functions
+- ✓ All 8+ analysis types working with rate limiting
+- ✓ Screenshot capture for all analysis types (base64 PNG)
+- ✓ Comprehensive error handling
 
 ## Previous Changes (November 24, 2025)
 
