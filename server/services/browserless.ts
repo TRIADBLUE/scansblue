@@ -95,32 +95,123 @@ export async function countButtons(url: string): Promise<ButtonAnalysis> {
         const seen = new WeakSet();
         const debug = [];
         
-        // Check page structure
-        debug.push('document.body exists: ' + !!document.body);
-        debug.push('document.body children: ' + (document.body?.childElementCount || 0));
-        debug.push('all elements in DOM: ' + document.querySelectorAll('*').length);
-        debug.push('all divs: ' + document.querySelectorAll('div').length);
-        
-        // Check body HTML sample
-        const bodyHTML = document.body?.innerHTML?.substring(0, 500) || 'N/A';
-        debug.push('body HTML sample: ' + bodyHTML);
+        // Helper to check if element is interactive
+        const isInteractive = (el) => {
+          const tag = el.tagName.toLowerCase();
+          if (['button', 'a', 'input'].includes(tag)) return true;
+          if (el.onclick || el.getAttribute('onclick')) return true;
+          if (el.getAttribute('role') === 'button') return true;
+          const style = window.getComputedStyle(el);
+          if (style.cursor === 'pointer') return true;
+          return false;
+        };
         
         // Helper to add unique buttons
         const add = (el) => {
           if (!el || seen.has(el)) return;
+          const txt = (el.textContent || el.getAttribute('aria-label') || el.getAttribute('title') || '').trim();
+          if (!txt || txt.length === 0) return;
+          if (txt.length > 150) return; // Skip too-long text
+          
           seen.add(el);
-          const txt = (el.textContent || el.getAttribute('aria-label') || el.getAttribute('title') || '').trim().substring(0, 80);
-          if (txt) items.push({ text: txt, tag: el.tagName, className: el.className });
+          const style = window.getComputedStyle(el);
+          items.push({ 
+            text: txt.substring(0, 80), 
+            tag: el.tagName, 
+            className: el.className,
+            cursor: style.cursor
+          });
         };
         
-        // Count elements
-        debug.push('buttons: ' + document.querySelectorAll('button').length);
-        debug.push('links: ' + document.querySelectorAll('a').length);
+        // Count basic elements
+        debug.push('total buttons: ' + document.querySelectorAll('button').length);
+        debug.push('total links: ' + document.querySelectorAll('a').length);
+        debug.push('total inputs: ' + document.querySelectorAll('input[type=button], input[type=submit]').length);
+        debug.push('role=button elements: ' + document.querySelectorAll('[role=button]').length);
         
-        // Get all clickable-looking elements
+        // Collect all button tags
         try { document.querySelectorAll('button').forEach(add); } catch (e) { debug.push('button error: ' + e); }
+        
+        // Collect input buttons and submits
         try { document.querySelectorAll('input[type=button], input[type=submit]').forEach(add); } catch (e) {}
+        
+        // Collect role=button elements
         try { document.querySelectorAll('[role=button]').forEach(add); } catch (e) {}
+        
+        // Collect styled links that look like buttons (have padding, rounded corners, background)
+        try {
+          document.querySelectorAll('a').forEach(el => {
+            const style = window.getComputedStyle(el);
+            const hasBg = style.backgroundColor !== 'rgba(0, 0, 0, 0)' && style.backgroundColor !== 'transparent';
+            const hasBorder = style.borderWidth !== '0px' || style.borderStyle !== 'none';
+            const isPadded = parseInt(style.paddingTop) > 2 || parseInt(style.paddingLeft) > 2;
+            if (hasBg || hasBorder || isPadded) add(el);
+          });
+        } catch (e) {}
+        
+        // Collect divs with onclick or role=button
+        try {
+          document.querySelectorAll('div[onclick], div[role=button], span[onclick], span[role=button]').forEach(add);
+        } catch (e) {}
+        
+        // Look for common button patterns by class names
+        try {
+          const buttonSelectors = [
+            '[class*="btn"]',
+            '[class*="button"]',
+            '[class*="action"]',
+            '[class*="cta"]',
+            '[class*="primary"]',
+            '[class*="secondary"]',
+            '[data-test*="button"]',
+            '[data-testid*="button"]'
+          ];
+          buttonSelectors.forEach(sel => {
+            try {
+              document.querySelectorAll(sel).forEach(el => {
+                if (el.offsetHeight > 15 && el.offsetWidth > 20) {
+                  add(el);
+                }
+              });
+            } catch (e) {}
+          });
+        } catch (e) {}
+        
+        // Find all clickable elements (not just cursor:pointer, also check for data attributes, event listeners)
+        try {
+          const walkDOM = (node, depth = 0) => {
+            if (depth > 50 || items.length > 300) return;
+            if (!node || !node.nodeType) return;
+            
+            if (node.nodeType === 1) { // Element node
+              if (!seen.has(node)) {
+                const style = window.getComputedStyle(node);
+                const txt = node.textContent?.trim() || node.getAttribute('aria-label')?.trim() || '';
+                
+                // Check for many interactive indicators
+                if (txt && txt.length > 0 && txt.length < 150) {
+                  const isClickable = 
+                    node.onclick ||
+                    node.getAttribute('onclick') ||
+                    style.cursor === 'pointer' ||
+                    node.hasAttribute('data-test') ||
+                    node.hasAttribute('data-testid') ||
+                    node.hasAttribute('href') ||
+                    (style.display !== 'none' && style.visibility !== 'hidden' && parseInt(style.opacity) > 0);
+                  
+                  if (isClickable && node.offsetHeight > 10 && node.offsetWidth > 15) {
+                    add(node);
+                  }
+                }
+              }
+              
+              for (let child of node.childNodes) {
+                walkDOM(child, depth + 1);
+              }
+            }
+          };
+          walkDOM(document.body);
+        } catch (e) {}
         
         return { items, debug };
       };
