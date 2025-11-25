@@ -34,6 +34,31 @@ async function runScript(
       const code = "export default async function ({ page }) {\n" +
         "  await page.goto('" + finalUrl + "', { waitUntil: 'networkidle2', timeout: 30000 });\n" +
         "  \n" +
+        "  try {\n" +
+        "    await page.evaluate(() => {\n" +
+        "      return new Promise((resolve) => {\n" +
+        "        if (document.readyState === 'complete') {\n" +
+        "          setTimeout(resolve, 500);\n" +
+        "        } else {\n" +
+        "          document.addEventListener('load', () => setTimeout(resolve, 500));\n" +
+        "        }\n" +
+        "      });\n" +
+        "    });\n" +
+        "  } catch (e) {}\n" +
+        "  \n" +
+        "  try {\n" +
+        "    await page.evaluate(() => {\n" +
+        "      return new Promise((resolve) => {\n" +
+        "        const root = document.querySelector('[data-reactroot], [data-react-root], #__next, #root, [ng-app], [data-app], .vue-app');\n" +
+        "        if (root && root.children.length === 0) {\n" +
+        "          setTimeout(resolve, 1500);\n" +
+        "        } else {\n" +
+        "          resolve();\n" +
+        "        }\n" +
+        "      });\n" +
+        "    });\n" +
+        "  } catch (e) {}\n" +
+        "  \n" +
         "  const result = " + scriptCode + ";\n" +
         "  \n" +
         "  const screenshot = await page.screenshot({ type: 'png', encoding: 'base64' });\n" +
