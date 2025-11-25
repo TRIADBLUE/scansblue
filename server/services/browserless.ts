@@ -31,43 +31,39 @@ async function runScript(
 
   return pRetry(
     async () => {
-      const code = "export default async function ({ page }) {\n" +
-        "  await page.goto('" + finalUrl + "', { waitUntil: 'networkidle2', timeout: 30000 });\n" +
-        "  \n" +
-        "  try {\n" +
-        "    await page.evaluate(() => {\n" +
-        "      return new Promise((resolve) => {\n" +
-        "        if (document.readyState === 'complete') {\n" +
-        "          setTimeout(resolve, 500);\n" +
-        "        } else {\n" +
-        "          document.addEventListener('load', () => setTimeout(resolve, 500));\n" +
-        "        }\n" +
-        "      });\n" +
-        "    });\n" +
-        "  } catch (e) {}\n" +
-        "  \n" +
-        "  try {\n" +
-        "    await page.evaluate(() => {\n" +
-        "      return new Promise((resolve) => {\n" +
-        "        const root = document.querySelector('[data-reactroot], [data-react-root], #__next, #root, [ng-app], [data-app], .vue-app');\n" +
-        "        if (root && root.children.length === 0) {\n" +
-        "          setTimeout(resolve, 1500);\n" +
-        "        } else {\n" +
-        "          resolve();\n" +
-        "        }\n" +
-        "      });\n" +
-        "    });\n" +
-        "  } catch (e) {}\n" +
-        "  \n" +
-        "  const result = " + scriptCode + ";\n" +
-        "  \n" +
-        "  const screenshot = await page.screenshot({ type: 'png', encoding: 'base64' });\n" +
-        "  \n" +
-        "  return {\n" +
-        "    data: { ...result, screenshot },\n" +
-        "    type: \"application/json\"\n" +
-        "  };\n" +
-        "}";
+      const code = `export default async function ({ page }) {
+  // Set user agent to look like a real browser
+  await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+  
+  // Set viewport to look like a real browser
+  await page.setViewport({ width: 1920, height: 1080 });
+  
+  // Navigate to the page
+  await page.goto('${finalUrl}', { waitUntil: 'networkidle2', timeout: 30000 });
+  
+  // Wait for actual DOM content to render
+  try {
+    await page.waitForSelector('body *', { timeout: 10000 });
+  } catch (e) {
+    // Continue even if selector doesn't match
+  }
+  
+  // Additional wait for JavaScript frameworks to render
+  await page.evaluate(() => new Promise(r => setTimeout(r, 1500)));
+  
+  // Execute the DOM analysis script inside the browser context (NOT Node context)
+  const analysisScript = ${JSON.stringify(scriptCode)};
+  const result = await page.evaluate((code) => {
+    return eval('(' + code + ')');
+  }, analysisScript);
+  
+  const screenshot = await page.screenshot({ type: 'png', encoding: 'base64' });
+  
+  return {
+    data: { ...result, screenshot },
+    type: "application/json"
+  };
+}`;
 
       const response = await fetch(BROWSERLESS_URL + "/function?token=" + API_KEY, {
         method: "POST",
@@ -123,11 +119,10 @@ export async function countButtons(url: string): Promise<ButtonAnalysis> {
           });
         };
         
-        // Count basic elements
-        debug.push('total buttons: ' + document.querySelectorAll('button').length);
-        debug.push('total links: ' + document.querySelectorAll('a').length);
-        debug.push('total inputs: ' + document.querySelectorAll('input[type=button], input[type=submit]').length);
-        debug.push('role=button elements: ' + document.querySelectorAll('[role=button]').length);
+        // Basic element counts for debugging
+        debug.push('buttons: ' + document.querySelectorAll('button').length);
+        debug.push('links: ' + document.querySelectorAll('a').length);
+        debug.push('inputs: ' + document.querySelectorAll('input[type=button], input[type=submit]').length);
         
         // Collect all button tags
         try { document.querySelectorAll('button').forEach(add); } catch (e) { debug.push('button error: ' + e); }
@@ -177,40 +172,22 @@ export async function countButtons(url: string): Promise<ButtonAnalysis> {
           });
         } catch (e) {}
         
-        // Find all clickable elements (not just cursor:pointer, also check for data attributes, event listeners)
+        // Find elements with cursor:pointer that look like actual buttons (not just any text)
         try {
-          const walkDOM = (node, depth = 0) => {
-            if (depth > 50 || items.length > 300) return;
-            if (!node || !node.nodeType) return;
+          document.querySelectorAll('*').forEach(el => {
+            if (items.length > 100) return;
+            const tag = el.tagName.toLowerCase();
+            // Skip non-interactive elements
+            if (['div', 'span', 'p', 'section', 'article', 'main', 'header', 'footer', 'li', 'ul'].includes(tag)) return;
             
-            if (node.nodeType === 1) { // Element node
-              if (!seen.has(node)) {
-                const style = window.getComputedStyle(node);
-                const txt = node.textContent?.trim() || node.getAttribute('aria-label')?.trim() || '';
-                
-                // Check for many interactive indicators
-                if (txt && txt.length > 0 && txt.length < 150) {
-                  const isClickable = 
-                    node.onclick ||
-                    node.getAttribute('onclick') ||
-                    style.cursor === 'pointer' ||
-                    node.hasAttribute('data-test') ||
-                    node.hasAttribute('data-testid') ||
-                    node.hasAttribute('href') ||
-                    (style.display !== 'none' && style.visibility !== 'hidden' && parseInt(style.opacity) > 0);
-                  
-                  if (isClickable && node.offsetHeight > 10 && node.offsetWidth > 15) {
-                    add(node);
-                  }
-                }
-              }
-              
-              for (let child of node.childNodes) {
-                walkDOM(child, depth + 1);
+            const style = window.getComputedStyle(el);
+            if (style.cursor === 'pointer' && !seen.has(el)) {
+              const txt = (el.textContent || el.getAttribute('aria-label') || '').trim();
+              if (txt && txt.length > 0 && txt.length < 50 && el.offsetHeight > 20 && el.offsetWidth > 40) {
+                add(el);
               }
             }
-          };
-          walkDOM(document.body);
+          });
         } catch (e) {}
         
         return { items, debug };
