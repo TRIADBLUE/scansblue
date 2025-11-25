@@ -32,7 +32,7 @@ async function runScript(
   return pRetry(
     async () => {
       const code = "export default async function ({ page }) {\n" +
-        "  await page.goto('" + finalUrl + "', { waitUntil: 'networkidle2' });\n" +
+        "  await page.goto('" + finalUrl + "', { waitUntil: 'networkidle2', timeout: 30000 });\n" +
         "  \n" +
         "  const result = " + scriptCode + ";\n" +
         "  \n" +
@@ -65,36 +65,64 @@ async function runScript(
 export async function countButtons(url: string): Promise<ButtonAnalysis> {
   const script = `
     (() => {
-      const buttons = Array.from(document.querySelectorAll('button, input[type="button"], input[type="submit"], [role="button"]'));
-      const buttonList = buttons.map((btn) => {
-        let location = "unknown";
-        if (btn.closest("header, [role='banner']")) location = "header";
-        else if (btn.closest("nav, [role='navigation']")) location = "navigation";
-        else if (btn.closest("footer")) location = "footer";
-        else if (btn.closest("main, [role='main']")) location = "main content";
-        else if (btn.closest("aside, [role='complementary']")) location = "sidebar";
-        else if (btn.closest("form")) location = "form";
+      const collectButtons = () => {
+        const items = [];
+        const seen = new WeakSet();
+        const debug = [];
         
-        const style = window.getComputedStyle(btn);
-        const styling = \`bg:\${style.backgroundColor}, text:\${style.color}, cursor:\${style.cursor}\`;
+        // Check page structure
+        debug.push('document.body exists: ' + !!document.body);
+        debug.push('document.body children: ' + (document.body?.childElementCount || 0));
+        debug.push('all elements in DOM: ' + document.querySelectorAll('*').length);
+        debug.push('all divs: ' + document.querySelectorAll('div').length);
         
-        return {
-          text: btn.textContent?.trim() || btn.getAttribute('aria-label') || btn.value || 'Unlabeled',
-          link: btn.tagName === 'A' ? btn.href : (btn.tagName === 'BUTTON' && btn.getAttribute('onclick') ? 'has onclick' : undefined),
-          location,
-          state: btn.getAttribute('disabled') ? 'disabled' : 'enabled',
-          styling
+        // Check body HTML sample
+        const bodyHTML = document.body?.innerHTML?.substring(0, 500) || 'N/A';
+        debug.push('body HTML sample: ' + bodyHTML);
+        
+        // Helper to add unique buttons
+        const add = (el) => {
+          if (!el || seen.has(el)) return;
+          seen.add(el);
+          const txt = (el.textContent || el.getAttribute('aria-label') || el.getAttribute('title') || '').trim().substring(0, 80);
+          if (txt) items.push({ text: txt, tag: el.tagName, className: el.className });
         };
-      });
-      return {
-        total: buttons.length,
-        buttons: buttonList
+        
+        // Count elements
+        debug.push('buttons: ' + document.querySelectorAll('button').length);
+        debug.push('links: ' + document.querySelectorAll('a').length);
+        
+        // Get all clickable-looking elements
+        try { document.querySelectorAll('button').forEach(add); } catch (e) { debug.push('button error: ' + e); }
+        try { document.querySelectorAll('input[type=button], input[type=submit]').forEach(add); } catch (e) {}
+        try { document.querySelectorAll('[role=button]').forEach(add); } catch (e) {}
+        
+        return { items, debug };
       };
+      
+      try {
+        const result = collectButtons();
+        return { total: result.items.length, buttons: result.items, debug: result.debug };
+      } catch (e) {
+        return { total: 0, buttons: [], error: String(e), debug: ['exception: ' + String(e)] };
+      }
     })()
   `;
 
   const result = await runScript(url, script);
-  return (result.data || result) as unknown as ButtonAnalysis;
+  const data = result.data || result;
+  console.log('[DEBUG] Button analysis for', url, ':', JSON.stringify(data.debug || 'No debug info', null, 2));
+  return {
+    total: data.total || 0,
+    buttons: (data.buttons || []).map((b: any) => ({
+      text: b.text || b.tagName || 'Unlabeled',
+      link: b.link,
+      location: 'unknown',
+      state: 'enabled',
+      styling: ''
+    })),
+    screenshot: result.screenshot
+  };
 }
 
 export async function findLogos(url: string): Promise<LogoAnalysis> {
