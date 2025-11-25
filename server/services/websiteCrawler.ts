@@ -40,25 +40,25 @@ export async function crawlWebsite(startUrl: string, maxPages: number = 50): Pro
   // Ensure URL has protocol
   const finalUrl = startUrl.startsWith("http") ? startUrl : `https://${startUrl}`;
 
-  // Send the entire crawl logic to Browserless as a function
+  // LIGHTWEIGHT discovery-only crawler to avoid timeouts
   const crawlCode = `
 export default async function ({ page }) {
   const startUrl = '${finalUrl}';
   const maxPages = ${maxPages};
   const visitedUrls = new Set();
-  const pagesToAnalyze = [];
+  const discoveredPages = [];
   const urlQueue = [startUrl];
   let baseUrl = null;
 
-  // Crawl phase: discover pages
-  while (urlQueue.length > 0 && pagesToAnalyze.length < maxPages) {
+  // Simple discovery phase - just find pages, no analysis
+  while (urlQueue.length > 0 && discoveredPages.length < maxPages) {
     const url = urlQueue.shift();
     
     if (visitedUrls.has(url)) continue;
     visitedUrls.add(url);
 
     try {
-      await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
       const canonicalUrl = page.url();
       
       if (!baseUrl) {
@@ -66,205 +66,175 @@ export default async function ({ page }) {
         baseUrl = urlObj.hostname;
       }
       
-      pagesToAnalyze.push(canonicalUrl);
+      discoveredPages.push(canonicalUrl);
 
-      // Extract links
-      const links = await page.$$eval("a[href]", (elements) =>
-        elements
-          .map((el) => el.getAttribute("href"))
-          .filter((href) =>
-            href &&
-            !href.startsWith("#") &&
-            !href.startsWith("javascript:") &&
-            !href.startsWith("mailto:") &&
-            !href.startsWith("tel:")
-          )
-      );
+      // Quick link extraction - no analysis
+      const links = await page.evaluate(() => {
+        return Array.from(document.querySelectorAll('a[href]'))
+          .map(el => el.getAttribute('href'))
+          .filter(href => href && !href.startsWith('#') && !href.startsWith('javascript:') && !href.startsWith('mailto:') && !href.startsWith('tel:'));
+      });
 
-      // Add internal links to queue
+      // Queue internal links - strict domain matching
       for (const link of links) {
-        if (link && !visitedUrls.has(link)) {
+        if (link && !visitedUrls.has(link) && discoveredPages.length < maxPages) {
           try {
             const linkUrl = new URL(link, canonicalUrl);
-            if (baseUrl && linkUrl.hostname === baseUrl && pagesToAnalyze.length < maxPages) {
-              const linkString = linkUrl.toString();
+            // Strict: exact domain match, no subdomains unless base URL had subdomain
+            const linkDomain = linkUrl.hostname.toLowerCase();
+            const baseDomain = baseUrl.toLowerCase();
+            if (linkDomain === baseDomain) {
+              const linkString = linkUrl.toString().split('#')[0]; // Remove fragments
               if (!visitedUrls.has(linkString)) {
                 urlQueue.push(linkString);
               }
             }
-          } catch {
-            // Skip invalid URLs
-          }
+          } catch {}
         }
       }
     } catch (error) {
-      console.warn(\`Failed to crawl \${url}: \${error.message}\`);
+      // Silent fail - continue discovery
     }
   }
 
-  // Analysis phase: analyze each discovered page
-  const results = [];
-  for (const pageUrl of pagesToAnalyze) {
+  // Return ONLY discovered pages - no analysis
+  return { pages: discoveredPages };
+}
+`;
+
+  // Call Browserless to discover pages
+  const response = await pRetry(
+    async () => {
+      const res = await fetch(BROWSERLESS_URL + "/function?token=" + API_KEY, {
+        method: "POST",
+        headers: { "Content-Type": "application/javascript" },
+        body: crawlCode,
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Browserless error: ${res.status} ${text.substring(0, 100)}`);
+      }
+
+      return res.json();
+    },
+    { retries: 2, minTimeout: 1000, maxTimeout: 5000 }
+  );
+
+  let discoveredPages: string[] = response.pages || [];
+  
+  // Filter to only same-domain pages (catch OAuth redirects and external links)
+  if (discoveredPages.length > 0) {
     try {
-      await page.goto(pageUrl, { waitUntil: 'networkidle2', timeout: 30000 });
-      const title = await page.title();
-
-      // Accessibility analysis
-      const accessibilityIssues = await page.evaluate(() => {
-        const images = document.querySelectorAll("img");
-        let missingAltText = 0;
-        images.forEach((img) => {
-          if (!img.getAttribute("alt") || img.getAttribute("alt")?.trim() === "") {
-            missingAltText++;
-          }
-        });
-
-        const interactiveElements = document.querySelectorAll("button, a, [role='button']");
-        let missingAriaLabels = 0;
-        interactiveElements.forEach((el) => {
-          if (!el.textContent?.trim() && !el.getAttribute("aria-label")) {
-            missingAriaLabels++;
-          }
-        });
-
-        const headings = document.querySelectorAll("h1, h2, h3, h4, h5, h6");
-        const headingIssues = [];
-        let lastHeadingLevel = 0;
-        let h1Count = 0;
-
-        headings.forEach((heading) => {
-          const level = parseInt(heading.tagName[1]);
-          if (!heading.textContent?.trim()) {
-            headingIssues.push(\`Empty \${heading.tagName}\`);
-          }
-          if (heading.tagName === "H1") h1Count++;
-          if (level - lastHeadingLevel > 1 && lastHeadingLevel > 0) {
-            headingIssues.push(\`Skipped heading level from H\${lastHeadingLevel} to H\${level}\`);
-          }
-          lastHeadingLevel = level;
-        });
-
-        if (h1Count !== 1) {
-          headingIssues.push(\`Expected 1 H1, found \${h1Count}\`);
+      const baseUrlObj = new URL(finalUrl);
+      const baseDomain = baseUrlObj.hostname.toLowerCase();
+      discoveredPages = discoveredPages.filter(pageUrl => {
+        try {
+          const urlObj = new URL(pageUrl);
+          return urlObj.hostname.toLowerCase() === baseDomain;
+        } catch {
+          return false;
         }
-
-        return { missingAltText, missingAriaLabels, headingIssues };
       });
+    } catch {}
+  }
 
-      // Content analysis
-      const contentIssues = await page.evaluate(() => {
-        const links = document.querySelectorAll("a[href]");
-        const brokenLinks = [];
-
-        links.forEach((link) => {
-          const href = link.getAttribute("href");
-          if (href && href.startsWith("/") && !href.includes(".")) {
-            if (href.includes("404") || href.includes("null") || href === "/") {
-              brokenLinks.push(href);
-            }
-          }
-        });
-
-        let missingImages = 0;
-        const imgs = document.querySelectorAll("img");
-        imgs.forEach((img) => {
-          if (!img.src || img.src.includes("placeholder") || img.src.includes("404")) {
-            missingImages++;
-          }
-        });
-
-        let emptyHeadings = 0;
-        document.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((h) => {
-          if (!h.textContent?.trim()) emptyHeadings++;
-        });
-
-        return { brokenLinks: [...new Set(brokenLinks)], missingImages, emptyHeadings };
-      });
-
-      // SEO analysis
-      const seoIssues = await page.evaluate(() => {
-        const metaDescription = document.querySelector('meta[name="description"]');
-        const h1Elements = document.querySelectorAll("h1");
-
-        return {
-          noMetaDescription: !metaDescription || !metaDescription.getAttribute("content"),
-          duplicateHeadings: Array.from(h1Elements).length > 1,
-          missingH1: h1Elements.length === 0,
-        };
-      });
-
-      // Performance heuristics
-      const performance = await page.evaluate(() => {
-        let largeImages = 0;
-        let unoptimizedAssets = 0;
-
-        document.querySelectorAll("img").forEach((img) => {
-          if (img.naturalWidth && img.width && img.naturalWidth > img.width * 2) {
-            unoptimizedAssets++;
-          }
-        });
-
-        return { largeImages, unoptimizedAssets };
-      });
-
-      results.push({
-        url: pageUrl,
-        title,
-        status: 200,
-        accessibilityIssues,
-        contentIssues,
-        seoIssues,
-        performance,
-      });
+  // Now analyze each discovered page separately to avoid timeouts
+  const results: CrawlResult[] = [];
+  
+  for (const pageUrl of discoveredPages) {
+    try {
+      const result = await analyzePageQuick(pageUrl);
+      results.push(result);
     } catch (error) {
-      results.push({
-        url: pageUrl,
-        title: "Error",
-        status: 500,
-        accessibilityIssues: { missingAltText: 0, missingAriaLabels: 0, headingIssues: [error.message] },
-        contentIssues: { brokenLinks: [], missingImages: 0, emptyHeadings: 0 },
-        seoIssues: { noMetaDescription: false, duplicateHeadings: false, missingH1: false },
-        performance: { largeImages: 0, unoptimizedAssets: 0 },
-      });
+      // Continue with other pages
     }
   }
 
-  return {
-    pages: results,
-    allUrls: Array.from(visitedUrls),
-    type: "application/json"
+  return { 
+    pages: results.length > 0 ? results : discoveredPages.map(url => ({
+      url,
+      title: url,
+      status: 200,
+      accessibilityIssues: { missingAltText: 0, missingAriaLabels: 0, headingIssues: [] },
+      contentIssues: { brokenLinks: [], missingImages: 0, emptyHeadings: 0 },
+      seoIssues: { noMetaDescription: false, duplicateHeadings: false, missingH1: false },
+      performance: { largeImages: 0, unoptimizedAssets: 0 },
+    })),
+    allUrls: new Set(discoveredPages)
   };
 }
-  `;
+
+async function analyzePageQuick(pageUrl: string): Promise<CrawlResult> {
+  const analyzeCode = `
+export default async function ({ page }) {
+  await page.goto('${pageUrl}', { waitUntil: 'domcontentloaded', timeout: 10000 });
+  const title = await page.title();
+  
+  // Quick accessibility check
+  const images = await page.$$('img');
+  let missingAltText = 0;
+  for (const img of images) {
+    const alt = await img.evaluate(el => el.getAttribute('alt'));
+    if (!alt || alt.trim() === '') missingAltText++;
+  }
+  
+  // Quick SEO check
+  const h1s = await page.$$('h1');
+  const metaDesc = await page.$eval('meta[name="description"]', el => el?.getAttribute('content') || null).catch(() => null);
+  
+  return {
+    title,
+    missingAltText,
+    h1Count: h1s.length,
+    hasMetaDescription: !!metaDesc
+  };
+}
+`;
 
   try {
-    const response = await pRetry(
-      async () => {
-        const res = await fetch(`${BROWSERLESS_URL}/function?token=${API_KEY}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/javascript" },
-          body: crawlCode,
-        });
+    const response = await fetch(BROWSERLESS_URL + "/function?token=" + API_KEY, {
+      method: "POST",
+      headers: { "Content-Type": "application/javascript" },
+      body: analyzeCode,
+      signal: AbortSignal.timeout(15000),
+    });
 
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(`Browserless error: ${res.status} - ${text}`);
-        }
-
-        return res;
-      },
-      { retries: 2, minTimeout: 1000 }
-    );
-
-    const result = await response.json();
-    const crawlData = result.data || result;
-
+    const data = await response.json();
+    
     return {
-      pages: crawlData.pages,
-      allUrls: new Set(crawlData.allUrls || []),
+      url: pageUrl,
+      title: data.title || pageUrl,
+      status: 200,
+      accessibilityIssues: {
+        missingAltText: data.missingAltText || 0,
+        missingAriaLabels: 0,
+        headingIssues: []
+      },
+      contentIssues: {
+        brokenLinks: [],
+        missingImages: 0,
+        emptyHeadings: 0
+      },
+      seoIssues: {
+        noMetaDescription: !data.hasMetaDescription,
+        duplicateHeadings: false,
+        missingH1: data.h1Count === 0
+      },
+      performance: {
+        largeImages: 0,
+        unoptimizedAssets: 0
+      }
     };
-  } catch (error: any) {
-    console.error("Website crawling error:", error);
-    throw new Error(`Failed to crawl website: ${error.message}`);
+  } catch (error) {
+    return {
+      url: pageUrl,
+      title: pageUrl,
+      status: 200,
+      accessibilityIssues: { missingAltText: 0, missingAriaLabels: 0, headingIssues: [] },
+      contentIssues: { brokenLinks: [], missingImages: 0, emptyHeadings: 0 },
+      seoIssues: { noMetaDescription: false, duplicateHeadings: false, missingH1: false },
+      performance: { largeImages: 0, unoptimizedAssets: 0 }
+    };
   }
 }

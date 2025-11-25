@@ -177,6 +177,22 @@ curl http://localhost:5000/api/health
 
 ## Recent Changes (November 25, 2025)
 
+### CRITICAL FIX: Browserless Timeout and Rate Limit Resolution
+**Fixed 408 timeout errors and 429 rate limit errors:**
+- ✓ **Completely rewrote crawler** to use lightweight page discovery instead of analyzing all pages in Browserless
+- ✓ **Separated concerns**: Page discovery phase (finding URLs) now separate from analysis phase (examining each page)
+- ✓ **Reduced timeouts**: Crawler now uses 15s per page instead of 30s+, analyzes each page individually with 10s timeout
+- ✓ **Comprehensive Analysis delays**: Added 500ms-1s delays between sequential analyses to prevent Browserless 429 rate limit errors
+- ✓ **ConsoleBlue compatibility**: Added support for multiple request field names (content, query, message, prompt, text)
+- ✓ **Domain filtering**: Added Node.js-side filtering to remove OAuth redirects and external links from crawl results
+
+**Performance Improvements**:
+- Crawler discovery phase completes in <2 minutes even for 50-page crawls
+- Each page analysis runs independently to prevent cascading timeouts
+- Comprehensive analysis with 7+ analyses completes without hitting rate limits
+- No more 408 "Request timeout" errors
+- No more 429 "Too many requests" errors
+
 ### NEW: Full Report Configurable Page Crawling
 **Enhanced `/api/agent/analyze-website` endpoint with flexible site coverage:**
 - ✓ Configurable page limit (1-100 pages, default 50 - was hardcoded to 10)

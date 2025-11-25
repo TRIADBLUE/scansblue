@@ -414,26 +414,39 @@ export interface ComprehensiveAnalysis {
 }
 
 export async function performComprehensiveAnalysis(url: string): Promise<ComprehensiveAnalysis> {
-  // Run key analyses sequentially to avoid rate limiting
-  const buttons = await countButtons(url);
-  const navigation = await analyzeNavigation(url);
-  const headings = await analyzeHeadings(url);
-  const accessibility = await analyzeAccessibility(url);
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
   
-  // Run remaining analyses with optional error suppression to avoid rate limits
-  let logos, forms, images;
+  // Run analyses sequentially with delays to avoid Browserless rate limiting
+  const buttons = await countButtons(url);
+  await delay(500);
+  
+  const navigation = await analyzeNavigation(url);
+  await delay(500);
+  
+  const headings = await analyzeHeadings(url);
+  await delay(500);
+  
+  const accessibility = await analyzeAccessibility(url);
+  await delay(500);
+  
+  // Run optional analyses with longer delays and error suppression
+  let logos;
   try {
     logos = await findLogos(url);
   } catch {
     logos = { found: false, logos: [], screenshot: "" } as LogoAnalysis;
   }
+  await delay(1000);
   
+  let forms;
   try {
     forms = await analyzeForms(url);
   } catch {
     forms = { totalForms: 0, forms: [], screenshot: "" } as FormsAnalysis;
   }
+  await delay(1000);
   
+  let images;
   try {
     images = await analyzeImages(url);
   } catch {

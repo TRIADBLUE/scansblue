@@ -60,11 +60,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/agent", async (req, res) => {
     try {
+      // Support multiple field names for compatibility (content, query, message, prompt, text)
+      const body = req.body;
+      const rawContent = body.content || body.query || body.message || body.prompt || body.text;
+      
       // Validate request body
-      const validation = agentRequestSchema.safeParse(req.body);
+      const validation = agentRequestSchema.safeParse({
+        content: rawContent,
+        webhookUrl: body.webhookUrl,
+      });
       if (!validation.success) {
         return res.status(400).json({
-          content: "Invalid request. Please provide a 'content' field with your question.",
+          content: "Invalid request. Please provide a question with a valid URL (e.g., 'How many buttons on example.com?').",
         });
       }
 
@@ -122,11 +129,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Batch analysis endpoint
   app.post("/api/agent/batch", async (req, res) => {
     try {
+      // Support multiple field names for compatibility
+      const normalizedRequests = (req.body.requests || []).map((r: any) => ({
+        content: r.content || r.query || r.message || r.prompt || r.text || "",
+      }));
+      
       // Validate request body
-      const validation = batchAgentRequestSchema.safeParse(req.body);
+      const validation = batchAgentRequestSchema.safeParse({
+        requests: normalizedRequests,
+        webhookUrl: req.body.webhookUrl,
+      });
       if (!validation.success) {
         return res.status(400).json({
-          error: "Invalid request. Please provide 'requests' array with 1-10 content items.",
+          error: "Invalid request. Please provide 'requests' array with 1-10 items, each with a question including a URL.",
         });
       }
 
