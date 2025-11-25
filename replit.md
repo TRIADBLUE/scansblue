@@ -231,7 +231,32 @@ Optional:
 
 **None required!** - Browserless handles all browser automation in the cloud. No Chromium or other system-level dependencies needed on production servers.
 
-## Recent Changes (November 24, 2025)
+## Recent Changes (November 25, 2025)
+
+### Navigation Rebranding
+**Updated menu labels and page titles:**
+- "Ask AI" → "Fast Check"
+- "Analyze" → "Full Report"
+- "Dashboard" → "ScanBlue"
+
+### Fixed Browserless Integration
+**Fixed all browser automation endpoints:**
+- ✓ Health endpoint now correctly checks Browserless (not Playwright)
+- ✓ Fixed type casting issues in all analysis functions
+- ✓ Resolved template literal conflicts in logos and forms analysis
+- ✓ All 8 analysis types working: Buttons, Logos, Favicon, Navigation, Forms, Images, Headings, Accessibility
+- ✓ All screenshots are captured and returned as base64 PNG data
+- ✓ Error handling improved with descriptive messages
+
+**All features tested and verified:**
+- ✓ /api/health - Browserless connectivity check
+- ✓ /api/agent - Natural language analysis requests
+- ✓ /api/agent/batch - Batch analysis support
+- ✓ All page routes: /, /analyze, /dashboard
+- ✓ Navigation between pages working
+- ✓ All quick analysis buttons functional
+
+## Previous Changes (November 24, 2025)
 
 ### NEW: Browserless Integration for Production
 

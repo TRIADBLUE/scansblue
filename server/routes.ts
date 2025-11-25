@@ -14,25 +14,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Enable CORS for cross-origin requests
   app.use(cors());
 
-  // Health check endpoint to verify Playwright functionality
+  // Health check endpoint to verify Browserless functionality
   app.get("/api/health", async (req, res) => {
+    const apiKey = process.env.BROWSERLESS_API_KEY;
+    if (!apiKey) {
+      return res.status(503).json({
+        status: "degraded",
+        browserless: "unconfigured",
+        message: "BROWSERLESS_API_KEY is not configured",
+      });
+    }
+    
     try {
-      const { chromium } = await import("playwright");
-      const browser = await chromium.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+      const response = await fetch("https://production-sfo.browserless.io/function?token=" + apiKey, {
+        method: "POST",
+        headers: { "Content-Type": "application/javascript" },
+        body: `export default async function ({ page }) {
+  await page.goto('https://example.com', { waitUntil: 'networkidle2' });
+  return { status: 'ok' };
+}`,
       });
-      await browser.close();
-      res.json({
-        status: "healthy",
-        playwright: "operational",
-        message: "Browser automation is working correctly"
-      });
+
+      if (response.ok) {
+        res.json({
+          status: "healthy",
+          browserless: "operational",
+          message: "Browser automation is working correctly"
+        });
+      } else {
+        res.status(503).json({
+          status: "degraded",
+          browserless: "unavailable",
+          message: "Browserless API returned error: " + response.status,
+        });
+      }
     } catch (error: any) {
       res.status(503).json({
         status: "degraded",
-        playwright: "unavailable",
-        message: "Browser automation is not available. System dependencies may be missing.",
+        browserless: "unavailable",
+        message: "Failed to connect to Browserless service",
         error: error.message
       });
     }
@@ -261,40 +281,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Health check endpoint
-  app.get("/api/health", async (req, res) => {
-    try {
-      // Try to launch browser to verify Playwright is working
-      const { chromium } = await import("playwright");
-      const browser = await chromium.launch({
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--single-process',
-          '--disable-gpu'
-        ]
-      });
-      await browser.close();
-
-      res.json({
-        status: "healthy",
-        browser: "operational",
-        message: "Site Inspector Agent is ready"
-      });
-    } catch (error: any) {
-      res.status(503).json({
-        status: "degraded",
-        browser: "unavailable",
-        message: "Browser automation unavailable - likely missing system dependencies",
-        error: error.message
-      });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;

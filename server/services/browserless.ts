@@ -30,22 +30,20 @@ async function runScript(
 
   return pRetry(
     async () => {
-      const code = `
-export default async function ({ page }) {
-  await page.goto('${finalUrl}', { waitUntil: 'networkidle2' });
-  
-  const result = ${scriptCode};
-  
-  const screenshot = await page.screenshot({ type: 'png', encoding: 'base64' });
-  
-  return {
-    data: { ...result, screenshot },
-    type: "application/json"
-  };
-}
-      `;
+      const code = "export default async function ({ page }) {\n" +
+        "  await page.goto('" + finalUrl + "', { waitUntil: 'networkidle2' });\n" +
+        "  \n" +
+        "  const result = " + scriptCode + ";\n" +
+        "  \n" +
+        "  const screenshot = await page.screenshot({ type: 'png', encoding: 'base64' });\n" +
+        "  \n" +
+        "  return {\n" +
+        "    data: { ...result, screenshot },\n" +
+        "    type: \"application/json\"\n" +
+        "  };\n" +
+        "}";
 
-      const response = await fetch(`${BROWSERLESS_URL}/function?token=${API_KEY}`, {
+      const response = await fetch(BROWSERLESS_URL + "/function?token=" + API_KEY, {
         method: "POST",
         headers: { "Content-Type": "application/javascript" },
         body: code,
@@ -95,52 +93,44 @@ export async function countButtons(url: string): Promise<ButtonAnalysis> {
   `;
 
   const result = await runScript(url, script);
-  return result as ButtonAnalysis;
+  return (result.data || result) as unknown as ButtonAnalysis;
 }
 
 export async function findLogos(url: string): Promise<LogoAnalysis> {
-  const script = `
-    (() => {
-      const images = Array.from(document.querySelectorAll('img'));
-      const logos = images
-        .filter((img) => {
-          const src = img.src.toLowerCase();
-          const alt = img.alt.toLowerCase();
-          const className = img.className.toLowerCase();
-          const id = (img.id || '').toLowerCase();
-          return src.includes('logo') || alt.includes('logo') || className.includes('logo') || id.includes('logo');
-        })
-        .map((img) => {
-          let location = "unknown";
-          if (img.closest("header, [role='banner']")) location = "header";
-          else if (img.closest("nav")) location = "navigation";
-          else if (img.closest("footer")) location = "footer";
-          else if (img.closest("main, [role='main']")) location = "main content";
-          
-          const attributes: Record<string, string> = {};
-          Array.from(img.attributes).forEach(attr => {
-            attributes[attr.name] = attr.value;
-          });
-          
-          return {
-            src: img.src,
-            alt: img.alt || "",
-            width: img.naturalWidth || img.width,
-            height: img.naturalHeight || img.height,
-            location,
-            className: img.className,
-            attributes
-          };
-        });
+  const script = `(() => {
+  const images = Array.from(document.querySelectorAll('img'));
+  const logos = images
+    .filter((img) => {
+      const src = img.src.toLowerCase();
+      const alt = img.alt.toLowerCase();
+      const className = img.className.toLowerCase();
+      const id = (img.id || '').toLowerCase();
+      return src.includes('logo') || alt.includes('logo') || className.includes('logo') || id.includes('logo');
+    })
+    .map((img) => {
+      let location = "unknown";
+      if (img.closest("header, [role='banner']")) location = "header";
+      else if (img.closest("nav")) location = "navigation";
+      else if (img.closest("footer")) location = "footer";
+      else if (img.closest("main, [role='main']")) location = "main content";
+      
       return {
-        found: logos.length > 0,
-        logos
+        src: img.src,
+        alt: img.alt || "",
+        width: img.naturalWidth || img.width,
+        height: img.naturalHeight || img.height,
+        location,
+        className: img.className
       };
-    })()
-  `;
+    });
+  return {
+    found: logos.length > 0,
+    logos
+  };
+})()`;
 
   const result = await runScript(url, script);
-  return result as LogoAnalysis;
+  return (result.data || result) as unknown as LogoAnalysis;
 }
 
 export async function findFavicon(url: string): Promise<FaviconAnalysis> {
@@ -164,7 +154,7 @@ export async function findFavicon(url: string): Promise<FaviconAnalysis> {
   `;
 
   const result = await runScript(url, script);
-  return result as FaviconAnalysis;
+  return (result.data || result) as unknown as FaviconAnalysis;
 }
 
 export async function analyzeNavigation(url: string): Promise<NavigationAnalysis> {
@@ -196,43 +186,41 @@ export async function analyzeNavigation(url: string): Promise<NavigationAnalysis
   `;
 
   const result = await runScript(url, script);
-  return result as NavigationAnalysis;
+  return (result.data || result) as unknown as NavigationAnalysis;
 }
 
 export async function analyzeForms(url: string): Promise<FormsAnalysis> {
-  const script = `
-    (() => {
-      const forms = Array.from(document.querySelectorAll('form'));
-      const formsList = forms.map((form) => {
-        const inputs = Array.from(form.querySelectorAll('input, textarea, select'));
-        const fields = inputs.map((input: any) => {
-          const label = form.querySelector(\`label[for="\${input.id}"]\`)?.textContent?.trim();
-          return {
-            name: input.name,
-            type: input.type || input.tagName.toLowerCase(),
-            required: input.required || input.getAttribute('required') === 'required',
-            label: label
-          };
-        });
-        
-        return {
-          id: form.id,
-          name: form.name,
-          method: (form.method || 'GET').toUpperCase(),
-          action: form.action,
-          fields
-        };
-      });
-      
+  const script = `(() => {
+  const forms = Array.from(document.querySelectorAll('form'));
+  const formsList = forms.map((form) => {
+    const inputs = Array.from(form.querySelectorAll('input, textarea, select'));
+    const fields = inputs.map((input) => {
+      const label = form.querySelector('label[for="' + input.id + '"]')?.textContent?.trim();
       return {
-        totalForms: forms.length,
-        forms: formsList
+        name: input.name,
+        type: input.type || input.tagName.toLowerCase(),
+        required: input.required || input.getAttribute('required') === 'required',
+        label: label
       };
-    })()
-  `;
+    });
+    
+    return {
+      id: form.id,
+      name: form.name,
+      method: (form.method || 'GET').toUpperCase(),
+      action: form.action,
+      fields
+    };
+  });
+  
+  return {
+    totalForms: forms.length,
+    forms: formsList
+  };
+})()`;
 
   const result = await runScript(url, script);
-  return result as FormsAnalysis;
+  return (result.data || result) as unknown as FormsAnalysis;
 }
 
 export async function analyzeImages(url: string): Promise<ImagesAnalysis> {
@@ -267,7 +255,7 @@ export async function analyzeImages(url: string): Promise<ImagesAnalysis> {
   `;
 
   const result = await runScript(url, script);
-  return result as ImagesAnalysis;
+  return (result.data || result) as unknown as ImagesAnalysis;
 }
 
 export async function analyzeHeadings(url: string): Promise<HeadingStructure> {
@@ -304,7 +292,7 @@ export async function analyzeHeadings(url: string): Promise<HeadingStructure> {
   `;
 
   const result = await runScript(url, script);
-  return result as HeadingStructure;
+  return (result.data || result) as unknown as HeadingStructure;
 }
 
 export async function analyzeAccessibility(url: string): Promise<AccessibilityAnalysis> {
@@ -350,7 +338,7 @@ export async function analyzeAccessibility(url: string): Promise<AccessibilityAn
   `;
 
   const result = await runScript(url, script);
-  return result as AccessibilityAnalysis;
+  return (result.data || result) as unknown as AccessibilityAnalysis;
 }
 
 export async function compareEnvironments(
