@@ -42,6 +42,12 @@ Built with **React, TypeScript, and Vite**, using **shadcn/ui** components for s
 ### Browser Automation
 Leverages **Browserless Cloud API** via the `/chromium/evaluate` endpoint for interactive element counting, image detection, favicon validation, navigation structure extraction, accessibility analysis, and screenshot capture.
 
+**CRITICAL Implementation Notes:**
+-   **Browser Context Execution**: DOM analysis scripts MUST run in browser page context using `page.evaluate(() => { return eval(JSON.stringify(scriptCode)) })`, NOT in Node.js context. This ensures scripts have access to the rendered DOM.
+-   **Security**: The eval approach is safe because only repository-controlled scripts are used (no user injection path).
+-   **Rendering Reliability**: Uses `waitForSelector('body *', 10s timeout)` + 1.5s post-render delay to handle JavaScript-heavy sites.
+-   **Browser Settings**: Uses Chrome UA and 1920x1080 viewport for compatibility.
+
 ### Feature Specifications
 -   **Natural Language Processing**: Recognizes comprehensive analysis requests (e.g., "complete analysis", "full audit") and specific element analyses (e.g., "how many buttons").
 -   **Comprehensive Website Analysis**: Delivers multi-section reports including structure quality, SEO priorities, execution concerns, button/link trends, and business-level recommendations. Combines 7 analyses: Buttons, Navigation, Headings, Accessibility, Logos, Forms, Images.
