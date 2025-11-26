@@ -103,7 +103,7 @@ export interface ButtonAnalysis {
   total: number;
   buttons: {
     text: string;
-    link?: string;
+    destination?: string;
     location: string;
     state?: string;
     styling?: string;
