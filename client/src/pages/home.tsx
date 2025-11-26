@@ -9,7 +9,7 @@ import { Loader2, Globe, Zap, Eye, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { AgentResponse } from "@shared/schema";
-import agentLogo from "@assets/inspectoragent-logo_1764006346092.png";
+import agentLogo from "@assets/siteinspetor-logo_1764201469395.png";
 
 export default function Home() {
   const [url, setUrl] = useState("");
