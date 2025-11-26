@@ -20,8 +20,8 @@ export function formatButtonAnalysis(url: string, analysis: ButtonAnalysis): str
 
   analysis.buttons.forEach((btn, idx) => {
     response += `${idx + 1}. ${btn.text || 'Unlabeled Button'}\n`;
-    if (btn.link) {
-      response += `   Link: ${btn.link}\n`;
+    if (btn.destination) {
+      response += `   Destination: ${btn.destination}\n`;
     }
     response += `   Location: ${btn.location}\n`;
     response += `   State: ${btn.state}\n`;

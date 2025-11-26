@@ -111,11 +111,36 @@ export async function countButtons(url: string): Promise<ButtonAnalysis> {
           
           seen.add(el);
           const style = window.getComputedStyle(el);
+          
+          // Get destination (href or onclick)
+          let destination = '';
+          if (el.tagName.toLowerCase() === 'a') {
+            destination = el.getAttribute('href') || '';
+          } else if (el.onclick || el.getAttribute('onclick')) {
+            destination = el.getAttribute('onclick') || 'click handler';
+          }
+          
+          // Get location on page (relative position)
+          const rect = el.getBoundingClientRect();
+          const pageHeight = window.innerHeight;
+          let location = 'unknown';
+          if (rect.top < pageHeight * 0.25) {
+            location = 'header';
+          } else if (rect.top < pageHeight * 0.5) {
+            location = 'upper content';
+          } else if (rect.top < pageHeight * 0.75) {
+            location = 'middle content';
+          } else {
+            location = 'lower content/footer';
+          }
+          
           items.push({ 
             text: txt.substring(0, 80), 
             tag: el.tagName, 
             className: el.className,
-            cursor: style.cursor
+            cursor: style.cursor,
+            destination: destination,
+            location: location
           });
         };
         
@@ -209,8 +234,8 @@ export async function countButtons(url: string): Promise<ButtonAnalysis> {
     total: data.total || 0,
     buttons: (data.buttons || []).map((b: any) => ({
       text: b.text || b.tagName || 'Unlabeled',
-      link: b.link,
-      location: 'unknown',
+      destination: b.destination || '',
+      location: b.location || 'unknown',
       state: 'enabled',
       styling: ''
     })),
