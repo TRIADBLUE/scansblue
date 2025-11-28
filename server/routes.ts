@@ -409,6 +409,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Conversation endpoints
+  app.get("/api/conversations", async (req, res) => {
+    try {
+      const conversations = await storage.getAllConversations();
+      res.json(conversations);
+    } catch (error: any) {
+      console.error("Failed to fetch conversations:", error);
+      res.status(500).json({ error: "Failed to fetch conversations" });
+    }
+  });
+
+  app.post("/api/conversations", async (req, res) => {
+    try {
+      const { title } = req.body;
+      const conversation = await storage.createConversation({ title: title || "New Conversation" });
+      res.json(conversation);
+    } catch (error: any) {
+      console.error("Failed to create conversation:", error);
+      res.status(500).json({ error: "Failed to create conversation" });
+    }
+  });
+
+  app.get("/api/conversations/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const messages = await storage.getConversationMessages(id);
+      res.json(messages);
+    } catch (error: any) {
+      console.error("Failed to fetch conversation:", error);
+      res.status(500).json({ error: "Failed to fetch conversation" });
+    }
+  });
+
+  app.post("/api/conversations/:id/messages", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { role, content } = req.body;
+      const message = await storage.addMessageToConversation({ conversationId: id, role, content });
+      res.json(message);
+    } catch (error: any) {
+      console.error("Failed to add message:", error);
+      res.status(500).json({ error: "Failed to add message" });
+    }
+  });
+
+  app.delete("/api/conversations/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteConversation(id);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Failed to delete conversation:", error);
+      res.status(500).json({ error: "Failed to delete conversation" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
