@@ -27,8 +27,8 @@ export async function auditCode(request: CodeAuditRequest): Promise<CodeAuditRes
   const { code, language = "javascript", question } = request;
 
   const prompt = question
-    ? `You are a code auditor. Analyze the following ${language} code and answer this question: ${question}\n\nCode:\n\`\`\`${language}\n${code}\n\`\`\`\n\nProvide a detailed analysis with specific issues and actionable suggestions.`
-    : `You are a code auditor. Perform a comprehensive review of the following ${language} code. Identify any issues, problems, missing functionality, or areas for improvement.\n\nCode:\n\`\`\`${language}\n${code}\n\`\`\`\n\nProvide:\n1. Summary of what the code does\n2. Identified issues or problems\n3. Missing functionality or incomplete parts\n4. Suggestions for improvement\n5. Security considerations if applicable`;
+    ? `Analyze and answer this question thoroughly: ${question}\n\nContext:\n${code}\n\nProvide a detailed analysis with specific insights and actionable recommendations.`
+    : `Perform a comprehensive analysis of the following text. Identify any issues, gaps, inconsistencies, or areas for improvement.\n\nText:\n${code}\n\nProvide:\n1. Summary of what's being described\n2. Identified issues or problems\n3. Missing components or gaps\n4. Suggestions for improvement\n5. Critical considerations if applicable`;
 
   return pRetry(
     async () => {
@@ -44,7 +44,7 @@ export async function auditCode(request: CodeAuditRequest): Promise<CodeAuditRes
             {
               role: "system",
               content:
-                "You are an expert code auditor and software architect. You provide thorough, independent code reviews and evaluations. You are critical and honest about what code does and does not do. You verify claims independently and identify gaps between what someone claims was built vs what actually exists in the code.",
+                "You are an expert auditor and analyst. You provide thorough, independent reviews and evaluations of any topic, system, configuration, or question presented to you. You are critical and honest about what exists and what doesn't. You verify claims independently and identify gaps between what someone claims vs. what actually makes sense. You analyze natural language questions, system configurations, architectures, and scenarios with deep insight. You're skilled at cutting through to the real issues.",
             },
             {
               role: "user",
