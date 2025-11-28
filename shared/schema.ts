@@ -115,6 +115,17 @@ export const auditResponseSchema = z.object({
 
 export type AuditResponse = z.infer<typeof auditResponseSchema>;
 
+// File metadata schema
+export const fileMetadataSchema = z.object({
+  id: z.string(),
+  originalName: z.string(),
+  mimeType: z.string(),
+  size: z.number(),
+  uploadedAt: z.string(),
+});
+
+export type FileMetadata = z.infer<typeof fileMetadataSchema>;
+
 // Internal analysis result types
 export interface ButtonAnalysis {
   total: number;

@@ -9,6 +9,7 @@ import { crawlWebsite } from "./services/websiteCrawler";
 import { generateTasks } from "./services/taskGenerator";
 import { websiteAnalysisRequestSchema } from "@shared/schema";
 import { auditCode } from "./services/deepseek";
+import { saveFile, getFile, deleteFile } from "./services/fileStorage";
 import { storage } from "./storage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -329,6 +330,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
           error: `Audit failed: ${error.message || "Unknown error"}`,
         });
       }
+    }
+  });
+
+  // File upload endpoint
+  app.post("/api/upload", async (req, res) => {
+    try {
+      // Get file from body as base64 string
+      const { file, name, type } = req.body;
+
+      if (!file || !name) {
+        return res.status(400).json({
+          error: "Missing file or name",
+        });
+      }
+
+      // Convert base64 to buffer
+      const buffer = Buffer.from(file, "base64");
+
+      const metadata = saveFile(buffer, name, type || "application/octet-stream");
+
+      res.json(metadata);
+    } catch (error: any) {
+      console.error("File upload error:", error);
+      res.status(500).json({
+        error: `Upload failed: ${error.message || "Unknown error"}`,
+      });
+    }
+  });
+
+  // File download endpoint
+  app.get("/api/download/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const result = getFile(id);
+      if (!result) {
+        return res.status(404).json({
+          error: "File not found",
+        });
+      }
+
+      const { buffer, metadata } = result;
+
+      res.setHeader("Content-Type", metadata.mimeType);
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${metadata.originalName}"`
+      );
+      res.setHeader("Content-Length", buffer.length);
+
+      res.send(buffer);
+    } catch (error: any) {
+      console.error("File download error:", error);
+      res.status(500).json({
+        error: `Download failed: ${error.message || "Unknown error"}`,
+      });
+    }
+  });
+
+  // File delete endpoint
+  app.delete("/api/upload/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      if (!deleteFile(id)) {
+        return res.status(404).json({
+          error: "File not found",
+        });
+      }
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("File delete error:", error);
+      res.status(500).json({
+        error: `Delete failed: ${error.message || "Unknown error"}`,
+      });
     }
   });
 
