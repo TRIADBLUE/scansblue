@@ -1,11 +1,17 @@
-import { useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { AlertCircle, CheckCircle2, Lightbulb, Zap } from "lucide-react";
+import { Send, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: Date;
+}
 
 interface AuditResponse {
   analysis: string;
@@ -15,16 +21,40 @@ interface AuditResponse {
 
 export default function CodeAuditor() {
   const { toast } = useToast();
-  const [code, setCode] = useState("");
-  const [language, setLanguage] = useState("javascript");
-  const [question, setQuestion] = useState("");
-  const [result, setResult] = useState<AuditResponse | null>(null);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: "1",
+      role: "assistant",
+      content:
+        "Hi! I'm your independent code and project auditor powered by DeepSeek AI. Paste any code, text, architecture diagrams, or project details you want me to review. Ask me anything - I'll give you an honest, independent assessment of what's actually there vs. what you were told. What would you like me to look at?",
+      timestamp: new Date(),
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const auditMutation = useMutation({
     mutationFn: async () => {
-      if (!code.trim()) {
-        throw new Error("Please enter code to audit");
+      if (!input.trim()) {
+        throw new Error("Please enter something");
       }
+
+      // Detect if it's code or freeform text
+      const isLikelyCode =
+        input.includes("{") ||
+        input.includes("}") ||
+        input.includes("function") ||
+        input.includes("const ") ||
+        input.includes("=>") ||
+        input.includes("class ");
 
       const response = await fetch("/api/audit", {
         method: "POST",
@@ -32,193 +62,130 @@ export default function CodeAuditor() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          code,
-          language,
-          question: question || undefined,
+          code: input,
+          language: isLikelyCode ? "javascript" : "text",
+          question: undefined,
         }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Audit failed");
+        throw new Error(error.error || "Request failed");
       }
 
       return response.json() as Promise<AuditResponse>;
     },
     onSuccess: (data) => {
-      setResult(data);
-      toast({
-        title: "Code audit complete",
-        description: "Analysis ready below",
-      });
+      const newMessage: Message = {
+        id: String(messages.length + 1),
+        role: "assistant",
+        content: data.analysis,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, newMessage]);
+      setInput("");
     },
     onError: (error: Error) => {
       toast({
-        title: "Audit failed",
+        title: "Request failed",
         description: error.message,
         variant: "destructive",
       });
     },
   });
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+
+    // Add user message
+    const userMessage: Message = {
+      id: String(messages.length + 1),
+      role: "user",
+      content: input,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, userMessage]);
+
+    // Send to audit API
+    auditMutation.mutate();
+  };
+
   return (
-    <div className="container max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Code Auditor</h1>
-        <p className="text-muted-foreground">
-          Get independent code review and evaluation using DeepSeek AI. Verify what code actually does vs. what you were told.
+    <div className="container max-w-4xl mx-auto px-4 h-[calc(100vh-64px)] flex flex-col">
+      {/* Header */}
+      <div className="py-4 border-b">
+        <h1 className="text-2xl font-bold">Independent Auditor</h1>
+        <p className="text-sm text-muted-foreground">
+          Paste code, text, or project details. Ask anything. Get honest feedback.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Input Section */}
-        <div className="space-y-6">
-          <Card className="p-6 space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Language</label>
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md bg-background"
-                data-testid="select-language"
-              >
-                <option value="javascript">JavaScript</option>
-                <option value="typescript">TypeScript</option>
-                <option value="python">Python</option>
-                <option value="jsx">JSX/TSX</option>
-                <option value="sql">SQL</option>
-                <option value="css">CSS</option>
-                <option value="html">HTML</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Code to Audit</label>
-              <Textarea
-                placeholder="Paste the code you want audited here..."
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                className="font-mono text-sm min-h-[300px]"
-                data-testid="input-code"
-              />
-              <p className="text-xs text-muted-foreground mt-2">
-                {code.length} characters
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto py-6 space-y-4">
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`flex ${
+              message.role === "user" ? "justify-end" : "justify-start"
+            }`}
+            data-testid={`message-${message.role}`}
+          >
+            <div
+              className={`max-w-2xl rounded-lg p-4 ${
+                message.role === "user"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-foreground"
+              }`}
+            >
+              <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                {message.content}
+              </p>
+              <p className="text-xs mt-2 opacity-70">
+                {message.timestamp.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </p>
             </div>
+          </div>
+        ))}
 
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Specific Question (Optional)
-              </label>
-              <Input
-                placeholder="e.g., 'Does this code handle errors?' or 'Is this implementation complete?'"
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                data-testid="input-question"
-              />
+        {auditMutation.isPending && (
+          <div className="flex justify-start">
+            <div className="bg-muted rounded-lg p-4 flex items-center gap-2">
+              <Zap className="w-4 h-4 text-yellow-500 animate-pulse" />
+              <p className="text-sm text-muted-foreground">Analyzing...</p>
             </div>
+          </div>
+        )}
 
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input */}
+      <div className="border-t py-4">
+        <form onSubmit={handleSubmit} className="space-y-2">
+          <Textarea
+            placeholder="Paste code, text, or anything you want audited. Ask any question..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            className="resize-none min-h-[100px]"
+            data-testid="input-message"
+            disabled={auditMutation.isPending}
+          />
+          <div className="flex justify-end">
             <Button
-              onClick={() => auditMutation.mutate()}
-              disabled={auditMutation.isPending || !code.trim()}
-              className="w-full"
-              size="lg"
-              data-testid="button-audit"
+              type="submit"
+              disabled={auditMutation.isPending || !input.trim()}
+              className="gap-2"
+              data-testid="button-send"
             >
-              {auditMutation.isPending ? "Analyzing..." : "Run Audit"}
+              <Send className="w-4 h-4" />
+              Send
             </Button>
-          </Card>
-        </div>
-
-        {/* Results Section */}
-        <div className="space-y-6">
-          {auditMutation.isPending && (
-            <Card className="p-6">
-              <div className="text-center space-y-4">
-                <div className="inline-block">
-                  <Zap className="w-12 h-12 text-yellow-500 animate-pulse" />
-                </div>
-                <p className="text-muted-foreground">
-                  DeepSeek is analyzing your code...
-                </p>
-              </div>
-            </Card>
-          )}
-
-          {result && (
-            <>
-              {/* Full Analysis */}
-              <Card className="p-6 space-y-4">
-                <h2 className="text-lg font-semibold">Full Analysis</h2>
-                <div className="prose prose-sm max-w-none dark:prose-invert">
-                  <p className="whitespace-pre-wrap text-sm text-foreground">
-                    {result.analysis}
-                  </p>
-                </div>
-              </Card>
-
-              {/* Issues */}
-              {result.issues.length > 0 && (
-                <Card className="p-6 space-y-3 border-red-200 dark:border-red-900">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="w-5 h-5 text-red-500" />
-                    <h3 className="font-semibold">Issues Found</h3>
-                  </div>
-                  <ul className="space-y-2">
-                    {result.issues.map((issue, idx) => (
-                      <li
-                        key={idx}
-                        className="text-sm p-2 bg-red-50 dark:bg-red-950/20 rounded text-foreground"
-                        data-testid={`issue-${idx}`}
-                      >
-                        • {issue}
-                      </li>
-                    ))}
-                  </ul>
-                </Card>
-              )}
-
-              {/* Suggestions */}
-              {result.suggestions.length > 0 && (
-                <Card className="p-6 space-y-3 border-blue-200 dark:border-blue-900">
-                  <div className="flex items-center gap-2">
-                    <Lightbulb className="w-5 h-5 text-blue-500" />
-                    <h3 className="font-semibold">Suggestions</h3>
-                  </div>
-                  <ul className="space-y-2">
-                    {result.suggestions.map((suggestion, idx) => (
-                      <li
-                        key={idx}
-                        className="text-sm p-2 bg-blue-50 dark:bg-blue-950/20 rounded text-foreground"
-                        data-testid={`suggestion-${idx}`}
-                      >
-                        • {suggestion}
-                      </li>
-                    ))}
-                  </ul>
-                </Card>
-              )}
-
-              {result.issues.length === 0 && result.suggestions.length === 0 && (
-                <Card className="p-6 space-y-3 border-green-200 dark:border-green-900">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-green-500" />
-                    <h3 className="font-semibold">Analysis Complete</h3>
-                  </div>
-                  <p className="text-sm text-foreground">
-                    See the full analysis above for detailed findings.
-                  </p>
-                </Card>
-              )}
-            </>
-          )}
-
-          {!result && !auditMutation.isPending && (
-            <Card className="p-6 text-center text-muted-foreground">
-              <p>Audit results will appear here</p>
-            </Card>
-          )}
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   );
