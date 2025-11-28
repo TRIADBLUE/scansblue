@@ -21,13 +21,16 @@ if (!API_KEY) {
 
 async function runScript(
   url: string,
-  scriptCode: string
+  scriptCode: string,
+  viewport?: { width: number; height: number }
 ): Promise<{ data: any; screenshot: string }> {
   if (!API_KEY) {
     throw new Error("Browserless API key not configured");
   }
 
   const finalUrl = url.startsWith("http") ? url : `https://${url}`;
+  const viewportWidth = viewport?.width ?? 1920;
+  const viewportHeight = viewport?.height ?? 1080;
 
   return pRetry(
     async () => {
@@ -35,8 +38,8 @@ async function runScript(
   // Set user agent to look like a real browser
   await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
   
-  // Set viewport to look like a real browser
-  await page.setViewport({ width: 1920, height: 1080 });
+  // Set viewport
+  await page.setViewport({ width: ${viewportWidth}, height: ${viewportHeight} });
   
   // Navigate to the page
   await page.goto('${finalUrl}', { waitUntil: 'networkidle2', timeout: 30000 });
@@ -305,21 +308,43 @@ export async function findFavicon(url: string): Promise<FaviconAnalysis> {
 }
 
 export async function analyzeNavigation(url: string): Promise<NavigationAnalysis> {
-  const script = `
+  const navigationScript = `
     (() => {
+      // Detect and capture hamburger menu trigger
+      const hamburgerSelectors = [
+        '[class*="hamburger"]', '[class*="menu-toggle"]', '[aria-label*="menu"]',
+        '.mobile-menu-trigger', '.nav-toggle', '[class*="burger"]'
+      ];
+      
+      let hamburgerFound = false;
+      let hamburgerElement = null;
+      for (const selector of hamburgerSelectors) {
+        const el = document.querySelector(selector);
+        if (el && el.offsetParent !== null) { // Check if visible
+          hamburgerFound = true;
+          hamburgerElement = selector;
+          break;
+        }
+      }
+      
+      // Collect visible menu items
       const navItems = [];
-      const selectors = ['nav a', '[role="navigation"] a', 'header a[href]', '.navbar a[href]'];
+      const selectors = ['nav a', '[role="navigation"] a', 'header a[href]', '.navbar a[href]', '.menu a[href]'];
       const seenHrefs = new Set();
       
       selectors.forEach(selector => {
         document.querySelectorAll(selector).forEach(link => {
           const href = link.getAttribute('href');
-          if (href && href !== '#' && !seenHrefs.has(href)) {
+          const parent = link.closest('[class*="menu"], nav, [role="navigation"]');
+          const isVisible = link.offsetParent !== null;
+          
+          if (href && href !== '#' && !seenHrefs.has(href) && isVisible) {
             seenHrefs.add(href);
             navItems.push({
               label: link.textContent?.trim() || link.getAttribute('aria-label') || 'Unlabeled',
               href: href,
-              children: []
+              isHidden: parent && parent.style.display === 'none',
+              parentClass: parent?.className || 'unknown'
             });
           }
         });
@@ -327,13 +352,37 @@ export async function analyzeNavigation(url: string): Promise<NavigationAnalysis
       
       return {
         menuItems: navItems.length,
-        structure: navItems.slice(0, 50)
+        structure: navItems.slice(0, 50),
+        hamburgerDetected: hamburgerFound,
+        hamburgerSelector: hamburgerElement,
+        hiddenMenuCount: navItems.filter(item => item.isHidden).length
       };
     })()
   `;
 
-  const result = await runScript(url, script);
-  return (result.data || result) as unknown as NavigationAnalysis;
+  // Run at both desktop and mobile viewports
+  const desktopResult = await runScript(url, navigationScript, { width: 1920, height: 1080 });
+  const mobileResult = await runScript(url, navigationScript, { width: 375, height: 812 });
+  
+  const desktopData = desktopResult.data || desktopResult;
+  const mobileData = mobileResult.data || mobileResult;
+  
+  return {
+    menuItems: desktopData.menuItems || 0,
+    structure: desktopData.structure || [],
+    mobileMenus: {
+      hamburgerDetected: mobileData.hamburgerDetected || false,
+      hamburgerSelector: mobileData.hamburgerSelector,
+      mobileMenuItems: mobileData.menuItems || 0,
+      structure: mobileData.structure || [],
+      hiddenMenuCount: mobileData.hiddenMenuCount || 0
+    },
+    screenshot: desktopResult.screenshot,
+    mobileScreenshot: mobileResult.screenshot,
+    comparisonNote: desktopData.menuItems !== mobileData.menuItems 
+      ? `Desktop has ${desktopData.menuItems} items, mobile view has ${mobileData.menuItems} items`
+      : 'Menu structure consistent between desktop and mobile'
+  } as unknown as NavigationAnalysis;
 }
 
 export async function analyzeForms(url: string): Promise<FormsAnalysis> {

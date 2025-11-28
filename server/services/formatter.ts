@@ -77,11 +77,15 @@ export function formatFaviconAnalysis(url: string, analysis: FaviconAnalysis): s
 }
 
 export function formatNavigationAnalysis(url: string, analysis: NavigationAnalysis): string {
-  if (analysis.menuItems === 0) {
+  if (analysis.menuItems === 0 && (!analysis.mobileMenus || analysis.mobileMenus.mobileMenuItems === 0)) {
     return `I didn't find any navigation menu items on ${url}.`;
   }
 
-  let response = `I found ${analysis.menuItems} navigation menu item${analysis.menuItems > 1 ? 's' : ''} on ${url}:\n\n`;
+  let response = `Navigation Analysis for ${url}:\n\n`;
+  
+  // Desktop menu
+  response += `DESKTOP VIEW (1920px):\n`;
+  response += `Menu items found: ${analysis.menuItems}\n\n`;
 
   const buildTree = (items: any[], depth: number = 0): string => {
     return items.map(item => {
@@ -89,6 +93,9 @@ export function formatNavigationAnalysis(url: string, analysis: NavigationAnalys
       let line = `${indent}${item.label}`;
       if (item.href) {
         line += ` → ${item.href}`;
+      }
+      if (item.isHidden) {
+        line += ` [HIDDEN]`;
       }
       let result = line + '\n';
       if (item.children && item.children.length > 0) {
@@ -99,6 +106,31 @@ export function formatNavigationAnalysis(url: string, analysis: NavigationAnalys
   };
 
   response += buildTree(analysis.structure);
+
+  // Mobile menu comparison
+  if (analysis.mobileMenus) {
+    response += `\n\nMOBILE VIEW (375px):\n`;
+    response += `Menu items found: ${analysis.mobileMenus.mobileMenuItems}\n`;
+    
+    if (analysis.mobileMenus.hamburgerDetected) {
+      response += `✓ Hamburger menu detected (${analysis.mobileMenus.hamburgerSelector})\n`;
+    } else {
+      response += `No hamburger menu detected\n`;
+    }
+    
+    if (analysis.mobileMenus.hiddenMenuCount > 0) {
+      response += `Hidden menu sections: ${analysis.mobileMenus.hiddenMenuCount}\n`;
+    }
+    
+    if (analysis.mobileMenus.structure.length > 0) {
+      response += `\nMobile menu structure:\n`;
+      response += buildTree(analysis.mobileMenus.structure);
+    }
+    
+    if (analysis.comparisonNote) {
+      response += `\nComparison: ${analysis.comparisonNote}\n`;
+    }
+  }
 
   return response.trim();
 }

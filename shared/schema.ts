@@ -138,12 +138,28 @@ export interface NavigationAnalysis {
   structure: {
     label: string;
     href: string;
+    isHidden?: boolean;
+    parentClass?: string;
     children?: {
       label: string;
       href: string;
     }[];
   }[];
+  mobileMenus?: {
+    hamburgerDetected: boolean;
+    hamburgerSelector?: string;
+    mobileMenuItems: number;
+    structure: {
+      label: string;
+      href: string;
+      isHidden?: boolean;
+      parentClass?: string;
+    }[];
+    hiddenMenuCount: number;
+  };
+  comparisonNote?: string;
   screenshot?: string;
+  mobileScreenshot?: string;
 }
 
 export interface AccessibilityAnalysis {
