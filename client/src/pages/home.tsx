@@ -48,6 +48,7 @@ export default function Home() {
     { label: "Forms", desc: "Extract form fields and types", question: `Find all forms on ${url} and list their fields, types, and required status` },
     { label: "Images", desc: "Analyze all images on page", question: `Analyze all images on ${url} including alt text coverage` },
     { label: "Headings", desc: "Check heading structure", question: `Analyze the heading structure on ${url} for H1-H6 hierarchy and issues` },
+    { label: "Comprehensive", desc: "Full multi-section website audit", question: `Perform a comprehensive analysis of ${url} including all elements: buttons, logos, navigation, forms, images, headings, and accessibility issues` },
   ];
 
   const handleAnalysis = (question: string, type: string) => {
@@ -155,7 +156,7 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {analysisButtons.map((btn) => (
                 <div key={btn.label} className="space-y-1">
                   <Button
