@@ -7,6 +7,7 @@ import { AppHeader } from "@/components/app-header";
 import Home from "@/pages/home";
 import WebsiteAnalysis from "@/pages/website-analysis";
 import Dashboard from "@/pages/dashboard";
+import CodeAuditor from "@/pages/code-auditor";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -15,6 +16,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/analyze" component={WebsiteAnalysis} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/auditor" component={CodeAuditor} />
       <Route component={NotFound} />
     </Switch>
   );

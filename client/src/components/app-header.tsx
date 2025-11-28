@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { List, LayoutDashboard, Sparkles } from "lucide-react";
+import { List, LayoutDashboard, Sparkles, Code2 } from "lucide-react";
 import siteInspectorLogo from "@assets/siteinspetor-logo_1764201469395.png";
 
 export function AppHeader() {
@@ -59,6 +59,19 @@ export function AppHeader() {
               <Link href="/dashboard">
                 <LayoutDashboard className="w-4 h-4" />
                 <span className="hidden sm:inline">ScanBlue</span>
+              </Link>
+            </Button>
+
+            <Button
+              variant={location === "/auditor" ? "default" : "ghost"}
+              size="sm"
+              className="gap-2"
+              data-testid="button-nav-auditor"
+              asChild
+            >
+              <Link href="/auditor">
+                <Code2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Auditor</span>
               </Link>
             </Button>
           </nav>

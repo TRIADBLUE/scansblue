@@ -98,6 +98,23 @@ export const batchAgentResponseSchema = z.object({
 
 export type BatchAgentResponse = z.infer<typeof batchAgentResponseSchema>;
 
+// Code audit request/response schemas
+export const auditRequestSchema = z.object({
+  code: z.string().min(1, "Code cannot be empty"),
+  language: z.string().default("javascript"),
+  question: z.string().optional(),
+});
+
+export type AuditRequest = z.infer<typeof auditRequestSchema>;
+
+export const auditResponseSchema = z.object({
+  analysis: z.string(),
+  issues: z.array(z.string()),
+  suggestions: z.array(z.string()),
+});
+
+export type AuditResponse = z.infer<typeof auditResponseSchema>;
+
 // Internal analysis result types
 export interface ButtonAnalysis {
   total: number;

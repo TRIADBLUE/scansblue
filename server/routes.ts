@@ -1,13 +1,14 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import cors from "cors";
-import { agentRequestSchema, batchAgentRequestSchema } from "@shared/schema";
+import { agentRequestSchema, batchAgentRequestSchema, auditRequestSchema } from "@shared/schema";
 import { parseUserQuestion } from "./services/openai";
 import { executeAnalysis } from "./services/analysisExecutor";
 import { sendWebhook } from "./services/webhook";
 import { crawlWebsite } from "./services/websiteCrawler";
 import { generateTasks } from "./services/taskGenerator";
 import { websiteAnalysisRequestSchema } from "@shared/schema";
+import { auditCode } from "./services/deepseek";
 import { storage } from "./storage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -296,6 +297,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Code audit endpoint using DeepSeek
+  app.post("/api/audit", async (req, res) => {
+    try {
+      const validation = auditRequestSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: "Invalid request. Please provide code to audit.",
+          details: validation.error.errors,
+        });
+      }
+
+      const { code, language, question } = validation.data;
+
+      const result = await auditCode({ code, language, question });
+
+      res.json(result);
+    } catch (error: any) {
+      console.error("Code audit error:", error);
+
+      if (error.message?.includes("DeepSeek API")) {
+        return res.status(503).json({
+          error: "DeepSeek service is currently unavailable. Please try again later.",
+        });
+      } else if (error.message?.includes("not configured")) {
+        return res.status(503).json({
+          error: "Code auditing is not configured. Please set up your DeepSeek API key.",
+        });
+      } else {
+        return res.status(500).json({
+          error: `Audit failed: ${error.message || "Unknown error"}`,
+        });
+      }
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
