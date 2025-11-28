@@ -54,19 +54,19 @@ export default function CodeAuditor() {
   }, [messages]);
 
   const auditMutation = useMutation({
-    mutationFn: async () => {
-      if (!input.trim()) {
+    mutationFn: async (codeInput: string) => {
+      if (!codeInput.trim()) {
         throw new Error("Please enter something");
       }
 
       // Detect if it's code or freeform text
       const isLikelyCode =
-        input.includes("{") ||
-        input.includes("}") ||
-        input.includes("function") ||
-        input.includes("const ") ||
-        input.includes("=>") ||
-        input.includes("class ");
+        codeInput.includes("{") ||
+        codeInput.includes("}") ||
+        codeInput.includes("function") ||
+        codeInput.includes("const ") ||
+        codeInput.includes("=>") ||
+        codeInput.includes("class ");
 
       const response = await fetch("/api/audit", {
         method: "POST",
@@ -74,7 +74,7 @@ export default function CodeAuditor() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          code: input,
+          code: codeInput,
           language: isLikelyCode ? "javascript" : "text",
           question: undefined,
         }),
@@ -184,11 +184,14 @@ export default function CodeAuditor() {
       attachments: attachments.length > 0 ? [...attachments] : undefined,
     };
     setMessages((prev) => [...prev, userMessage]);
+    
+    // Pass the input to mutation before clearing it
+    const messageInput = input;
     setInput("");
     setAttachments([]);
 
-    // Send to audit API
-    auditMutation.mutate();
+    // Send to audit API with the captured input
+    auditMutation.mutate(messageInput);
   };
 
   return (
