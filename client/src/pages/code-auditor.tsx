@@ -3,7 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Send, Zap, Upload, Download, X, Plus, Trash2 } from "lucide-react";
+import { Send, Zap, Upload, Download, X, Plus, Trash2, Mic, Square } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface FileAttachment {
@@ -58,8 +58,10 @@ export default function CodeAuditor() {
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
   const [uploading, setUploading] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -68,6 +70,75 @@ export default function CodeAuditor() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const SpeechRecognition =
+        (window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition;
+
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = true;
+        recognitionRef.current.lang = "en-US";
+
+        recognitionRef.current.onstart = () => {
+          setIsListening(true);
+        };
+
+        recognitionRef.current.onresult = (event: any) => {
+          let interimTranscript = "";
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              setInput((prev) => prev + (prev ? " " : "") + transcript);
+            } else {
+              interimTranscript += transcript;
+            }
+          }
+        };
+
+        recognitionRef.current.onerror = (event: any) => {
+          toast({
+            title: "Microphone error",
+            description: event.error,
+            variant: "destructive",
+          });
+          setIsListening(false);
+        };
+
+        recognitionRef.current.onend = () => {
+          setIsListening(false);
+        };
+      }
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+    };
+  }, [toast]);
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      toast({
+        title: "Voice input not supported",
+        description: "Your browser doesn't support speech recognition",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      setInput("");
+      recognitionRef.current.start();
+    }
+  };
 
   // Fetch all conversations
   const { data: conversations = [] } = useQuery({
@@ -466,12 +537,33 @@ export default function CodeAuditor() {
                   variant="outline"
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading || auditMutation.isPending}
+                  disabled={uploading || auditMutation.isPending || isListening}
                   className="gap-2"
                   data-testid="button-attach"
                 >
                   <Upload className="w-4 h-4" />
                   {uploading ? "Uploading..." : "Attach"}
+                </Button>
+                <Button
+                  type="button"
+                  variant={isListening ? "destructive" : "outline"}
+                  size="sm"
+                  onClick={toggleListening}
+                  disabled={uploading || auditMutation.isPending}
+                  className="gap-2"
+                  data-testid="button-voice"
+                >
+                  {isListening ? (
+                    <>
+                      <Square className="w-4 h-4" />
+                      Stop
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="w-4 h-4" />
+                      Voice
+                    </>
+                  )}
                 </Button>
               </div>
               <Button
