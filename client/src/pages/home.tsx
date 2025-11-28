@@ -2,10 +2,9 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Globe, Zap, Eye, MessageSquare } from "lucide-react";
+import { Loader2, Globe, Zap, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { AgentResponse } from "@shared/schema";
@@ -13,7 +12,6 @@ import agentLogo from "@assets/siteinspetor-logo_1764201469395.png";
 
 export default function Home() {
   const [url, setUrl] = useState("");
-  const [customQuestion, setCustomQuestion] = useState("");
   const [analysisType, setAnalysisType] = useState<string | null>(null);
   const [result, setResult] = useState<AgentResponse | null>(null);
   const { toast } = useToast();
@@ -64,27 +62,6 @@ export default function Home() {
     analysisMutation.mutate(question);
   };
 
-  const handleCustomAnalysis = () => {
-    if (!url.trim()) {
-      toast({
-        title: "URL Required",
-        description: "Please enter a website URL",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (!customQuestion.trim()) {
-      toast({
-        title: "Question Required",
-        description: "Please enter a question",
-        variant: "destructive",
-      });
-      return;
-    }
-    setAnalysisType("Custom");
-    analysisMutation.mutate(customQuestion);
-  };
-
   const isLoading = analysisMutation.isPending;
 
   return (
@@ -132,7 +109,6 @@ export default function Home() {
                 variant="outline"
                 onClick={() => {
                   setUrl("");
-                  setCustomQuestion("");
                   setResult(null);
                   analysisMutation.reset();
                 }}
@@ -177,49 +153,6 @@ export default function Home() {
                   <p className="text-xs text-muted-foreground px-1">{btn.desc}</p>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Custom Question Card */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="w-5 h-5" />
-              Free-Form Question
-            </CardTitle>
-            <CardDescription>
-              Ask any custom question about the website using natural language
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <Textarea
-                data-testid="input-custom-question"
-                placeholder="e.g., Are there any broken links? How many external links exist? Check if the site is mobile responsive..."
-                value={customQuestion}
-                onChange={(e) => setCustomQuestion(e.target.value)}
-                disabled={isLoading}
-                className="min-h-24 resize-none"
-              />
-              <Button
-                data-testid="button-analyze-custom"
-                onClick={handleCustomAnalysis}
-                disabled={isLoading || !url.trim() || !customQuestion.trim()}
-                className="w-full"
-              >
-                {isLoading && analysisType === "Custom" ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Ask Question
-                  </>
-                )}
-              </Button>
             </div>
           </CardContent>
         </Card>
