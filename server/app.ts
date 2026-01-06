@@ -1,5 +1,5 @@
 import { type Server } from "node:http";
-// import businessBlueprintApi from './api/businessblueprint';  // ← REMOVED (File missing)
+import businessBlueprintApi from './api/businessblueprint';
 import express, {
   type Express,
   type Request,
@@ -64,8 +64,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// ← REMOVED: BusinessBlueprint API routes (File missing)
-// app.use('/api/businessblueprint', businessBlueprintApi);
+// BusinessBlueprint API routes
+app.use('/api/businessblueprint', businessBlueprintApi);
 
 export default async function runApp(
   setup: (app: Express, server: Server) => Promise<void>,
