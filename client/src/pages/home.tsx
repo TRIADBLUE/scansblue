@@ -170,7 +170,7 @@ export default function Home() {
               <div className="prose prose-sm max-w-none">
                 <div
                   data-testid="text-result"
-                  className="whitespace-pre-wrap text-foreground leading-relaxed text-sm"
+                  className="whitespace-pre-wrap text-foreground leading-relaxed text-sm font-result"
                 >
                   {result.content}
                 </div>

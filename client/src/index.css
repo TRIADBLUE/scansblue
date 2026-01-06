@@ -3,9 +3,7 @@
 @tailwind utilities;
 
 /* 
- * SYSTEMATIC THEME LOCK
- * We force light mode variables into both :root and .dark to prevent any 
- * theme-switching logic from rendering dark colors.
+ * SYSTEMATIC THEME LOCK & ARCHIVO FONT INTEGRATION
  */
 :root, .dark {
   /* Colors - Pure Light Theme */
@@ -38,10 +36,13 @@
   --sidebar-border: 220 6% 90%;
   --sidebar-ring: 345 100% 31%;
 
-  /* Fonts - Restored exactly as requested */
-  --font-sans: 'Architects Daughter', cursive;
-  --font-serif: 'Ubuntu', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* Archivo Variable Font Implementation */
+  /* Archivo Content: Normal width */
+  --font-sans: "Archivo", sans-serif;
+  /* Archivo Semi Expanded: wdth 112.5 */
+  --font-serif: "Archivo", sans-serif;
+  /* Archivo Condensed: wdth 75 */
+  --font-mono: "Archivo", sans-serif;
   
   --radius: 0.5rem;
 }
@@ -51,39 +52,36 @@
     @apply border-border;
   }
 
-  /* Force light color scheme at browser level */
   html {
     color-scheme: light !important;
     background-color: white !important;
   }
 
   body {
-    @apply font-sans antialiased;
+    @apply antialiased;
     background-color: white !important;
     color: black !important;
     font-family: var(--font-sans) !important;
+    /* Archivo Content settings */
+    font-variation-settings: "wdth" 100; 
   }
 
-  /* Headings use the Ubuntu font for a nice contrast */
+  /* Titles and Headers: Archivo Semi Expanded */
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-serif) !important;
+    font-variation-settings: "wdth" 112.5, "wght" 600 !important;
+    letter-spacing: -0.01em;
   }
 }
 
-/* 
- * Utility Overrides
- * Some components might have hardcoded bg-background or text-foreground
- * that we ensure are white/black respectively.
- */
 @layer utilities {
-  .bg-background {
-    background-color: white !important;
-  }
-  .text-foreground {
-    color: black !important;
-  }
-  /* Ensure sidebar doesn't get dark */
-  .bg-sidebar {
-    background-color: #fafafa !important;
+  .bg-background { background-color: white !important; }
+  .text-foreground { color: black !important; }
+  .bg-sidebar { background-color: #fafafa !important; }
+  
+  /* Result-specific style: Archivo Condensed */
+  .font-result {
+    font-family: var(--font-mono) !important;
+    font-variation-settings: "wdth" 75 !important;
   }
 }
