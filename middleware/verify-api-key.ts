@@ -1,4 +1,3 @@
-```typescript
 import { Request, Response, NextFunction } from 'express';
 
 interface AuthenticatedRequest extends Request {
@@ -9,7 +8,7 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
-const API_KEYS = {
+const API_KEYS: Record<string, { name: string; tier: 'free' | 'premium'; rateLimit: number }> = {
   // BusinessBlueprint Production Key
   [process.env.BUSINESSBLUEPRINT_API_KEY || 'BBAPI_live_changeme']: {
     name: 'BusinessBlueprint',
@@ -64,4 +63,3 @@ export function requirePremiumTier(req: AuthenticatedRequest, res: Response, nex
 
   next();
 }
-```
