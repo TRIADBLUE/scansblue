@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -56,17 +56,17 @@ export default function WebsiteAnalysis() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-8">
+    <div className="min-h-screen bg-white p-4 sm:p-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Full Report</h1>
-          <p className="text-slate-300">
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-2">Full Report</h1>
+          <p className="text-slate-600">
             Crawl your entire website and generate a prioritized task list to improve it
           </p>
         </div>
 
-        <Card className="p-6 mb-8 bg-slate-800 border-slate-700">
-          <div className="flex gap-2">
+        <Card className="p-6 mb-8 border-border">
+          <div className="flex flex-col sm:flex-row gap-3">
             <Input
               type="url"
               placeholder="Enter website URL (e.g., example.com or https://example.com)"
@@ -74,19 +74,18 @@ export default function WebsiteAnalysis() {
               onChange={(e) => setUrl(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleAnalyze()}
               disabled={analysisMutation.isPending}
-              className="bg-slate-700 border-slate-600 text-white placeholder-slate-400"
+              className="flex-1"
               data-testid="input-website-url"
             />
             <Button
               onClick={handleAnalyze}
               disabled={analysisMutation.isPending || !url.trim()}
               data-testid="button-analyze"
-              className="bg-blue-600 hover:bg-blue-700"
             >
               {analysisMutation.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Analyzing...
+                  Analyzing
                 </>
               ) : (
                 "Analyze"
@@ -96,12 +95,12 @@ export default function WebsiteAnalysis() {
         </Card>
 
         {analysisMutation.isError && (
-          <Card className="p-6 mb-8 bg-red-900/20 border-red-700">
-            <div className="flex gap-2">
-              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+          <Card className="p-6 mb-8 border-destructive/20 bg-destructive/5">
+            <div className="flex gap-3">
+              <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-semibold text-red-300">Analysis Error</h3>
-                <p className="text-red-200 text-sm">
+                <h3 className="font-semibold text-destructive">Analysis Error</h3>
+                <p className="text-sm text-destructive/80">
                   {analysisMutation.error instanceof Error
                     ? analysisMutation.error.message
                     : "Failed to analyze website"}
@@ -114,76 +113,84 @@ export default function WebsiteAnalysis() {
         {analysisMutation.data && (
           <div className="space-y-6">
             {/* Summary */}
-            <Card className="p-6 bg-slate-800 border-slate-700">
-              <h2 className="text-2xl font-bold text-white mb-4">Analysis Summary</h2>
-              <div className="grid grid-cols-3 gap-4 mb-4">
-                <div className="bg-slate-700 p-4 rounded">
-                  <p className="text-slate-400 text-sm">Pages Analyzed</p>
-                  <p className="text-2xl font-bold text-white">
+            <Card className="p-6">
+              <h2 className="text-xl sm:text-2xl font-bold mb-4">Analysis Summary</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div className="bg-muted p-4 rounded-lg">
+                  <p className="text-muted-foreground text-sm">Pages Analyzed</p>
+                  <p className="text-2xl font-bold">
                     {analysisMutation.data.pagesAnalyzed.length}
                   </p>
                 </div>
-                <div className="bg-slate-700 p-4 rounded">
-                  <p className="text-slate-400 text-sm">Total Issues</p>
-                  <p className="text-2xl font-bold text-white">
+                <div className="bg-muted p-4 rounded-lg">
+                  <p className="text-muted-foreground text-sm">Total Issues</p>
+                  <p className="text-2xl font-bold">
                     {analysisMutation.data.totalIssues}
                   </p>
                 </div>
-                <div className="bg-slate-700 p-4 rounded">
-                  <p className="text-slate-400 text-sm">Tasks Generated</p>
-                  <p className="text-2xl font-bold text-white">
+                <div className="bg-muted p-4 rounded-lg">
+                  <p className="text-muted-foreground text-sm">Tasks Generated</p>
+                  <p className="text-2xl font-bold">
                     {analysisMutation.data.tasks.length}
                   </p>
                 </div>
               </div>
-              <p className="text-slate-300 text-lg">{analysisMutation.data.summary}</p>
+              <p className="text-slate-700 leading-relaxed font-result">
+                {analysisMutation.data.summary}
+              </p>
             </Card>
 
             {/* Tasks List */}
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-4">Action Items</h2>
-              <div className="space-y-3">
+            <div className="space-y-4">
+              <h2 className="text-xl sm:text-2xl font-bold">Action Items</h2>
+              <div className="grid gap-4">
                 {analysisMutation.data.tasks.map((task) => (
                   <Card
                     key={task.id}
-                    className="p-4 bg-slate-800 border-slate-700 hover:border-slate-600 transition"
+                    className="p-4 hover:shadow-md transition-shadow"
                     data-testid={`card-task-${task.id}`}
                   >
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0 pt-1">
-                        <span className="text-2xl">{getCategoryIcon(task.category)}</span>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <div className="flex-shrink-0 flex items-start">
+                        <span className="text-2xl" role="img" aria-label={task.category}>
+                          {getCategoryIcon(task.category)}
+                        </span>
                       </div>
-                      <div className="flex-grow">
-                        <div className="flex items-start justify-between mb-2">
-                          <h3 className="font-semibold text-white text-lg">{task.title}</h3>
-                          <div className="flex gap-2 ml-2">
+                      <div className="flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                          <h3 className="font-bold text-lg">{task.title}</h3>
+                          <div className="flex gap-2">
                             <Badge className={getPriorityColor(task.priority)}>
-                              {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                              {task.priority.toUpperCase()}
                             </Badge>
-                            <Badge variant="outline" className="text-slate-300 border-slate-600">
+                            <Badge variant="outline">
                               {task.estimatedEffort}
                             </Badge>
                           </div>
                         </div>
-                        <p className="text-slate-300 mb-3">{task.description}</p>
+                        <p className="text-slate-600 mb-4 text-sm leading-relaxed font-result">
+                          {task.description}
+                        </p>
                         <div className="flex flex-wrap gap-2">
                           {task.affectedPages.slice(0, 3).map((page, idx) => (
                             <code
                               key={idx}
-                              className="text-xs bg-slate-700 text-slate-200 px-2 py-1 rounded"
+                              className="text-[10px] bg-muted px-2 py-0.5 rounded text-muted-foreground font-mono"
                             >
                               {new URL(page).pathname || page}
                             </code>
                           ))}
                           {task.affectedPages.length > 3 && (
-                            <span className="text-xs text-slate-400">
+                            <span className="text-[10px] text-muted-foreground self-center">
                               +{task.affectedPages.length - 3} more
                             </span>
                           )}
                         </div>
                       </div>
-                      <div className="flex-shrink-0">
-                        <CheckCircle className="w-5 h-5 text-slate-600 hover:text-slate-400 cursor-pointer transition" />
+                      <div className="flex items-start">
+                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+                          <CheckCircle className="w-5 h-5" />
+                        </Button>
                       </div>
                     </div>
                   </Card>
@@ -192,11 +199,11 @@ export default function WebsiteAnalysis() {
             </div>
 
             {/* Pages Analyzed */}
-            <Card className="p-6 bg-slate-800 border-slate-700">
-              <h3 className="font-semibold text-white mb-3">Pages Crawled</h3>
-              <div className="space-y-1">
+            <Card className="p-6">
+              <h3 className="font-bold mb-4">Pages Crawled</h3>
+              <div className="grid gap-1">
                 {analysisMutation.data.pagesAnalyzed.map((page) => (
-                  <p key={page} className="text-slate-300 text-sm font-mono">
+                  <p key={page} className="text-xs text-muted-foreground font-mono truncate">
                     {page}
                   </p>
                 ))}
