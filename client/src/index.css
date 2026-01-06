@@ -2,58 +2,88 @@
 @tailwind components;
 @tailwind utilities;
 
-/* FORCE LIGHT MODE COLORS EVERYWHERE - OVERRIDE ALL */
+/* 
+ * SYSTEMATIC THEME LOCK
+ * We force light mode variables into both :root and .dark to prevent any 
+ * theme-switching logic from rendering dark colors.
+ */
 :root, .dark {
-  --background: 0 0% 100% !important;
-  --foreground: 220 6% 15% !important;
-  --card: 0 0% 100% !important;
-  --card-foreground: 220 6% 15% !important;
-  --popover: 0 0% 100% !important;
-  --popover-foreground: 220 6% 15% !important;
-  --primary: 345 100% 31% !important;
-  --primary-foreground: 345 100% 98% !important;
-  --secondary: 220 8% 96% !important;
-  --secondary-foreground: 220 8% 20% !important;
-  --muted: 220 10% 96% !important;
-  --muted-foreground: 220 10% 40% !important;
-  --accent: 220 12% 96% !important;
-  --accent-foreground: 220 12% 25% !important;
-  --destructive: 0 84% 42% !important;
-  --destructive-foreground: 0 84% 98% !important;
-  --border: 220 6% 88% !important;
-  --input: 220 6% 92% !important;
-  --ring: 345 100% 31% !important;
-  --sidebar: 0 0% 100% !important;
-  --sidebar-foreground: 220 6% 15% !important;
-  --sidebar-primary: 345 100% 31% !important;
-  --sidebar-primary-foreground: 345 100% 98% !important;
-  --sidebar-accent: 220 8% 96% !important;
-  --sidebar-accent-foreground: 220 8% 20% !important;
-  --sidebar-border: 220 6% 88% !important;
-  --sidebar-ring: 345 100% 31% !important;
+  /* Colors - Pure Light Theme */
+  --background: 0 0% 100%;
+  --foreground: 220 6% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 6% 10%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 6% 10%;
+  --primary: 345 100% 31%; /* #A00028 */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 10% 96%;
+  --secondary-foreground: 220 6% 10%;
+  --muted: 220 10% 96%;
+  --muted-foreground: 220 6% 45%;
+  --accent: 220 10% 96%;
+  --accent-foreground: 220 6% 10%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 220 6% 90%;
+  --input: 220 6% 90%;
+  --ring: 345 100% 31%;
+  
+  --sidebar: 0 0% 98%;
+  --sidebar-foreground: 220 6% 15%;
+  --sidebar-primary: 345 100% 31%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 220 10% 94%;
+  --sidebar-accent-foreground: 220 6% 10%;
+  --sidebar-border: 220 6% 90%;
+  --sidebar-ring: 345 100% 31%;
+
+  /* Fonts - Restored exactly as requested */
+  --font-sans: 'Architects Daughter', cursive;
+  --font-serif: 'Ubuntu', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  --radius: 0.5rem;
 }
 
 @layer base {
-  html {
-    background-color: white !important;
-    color: black !important;
-    color-scheme: light !important;
-  }
-  
-  body {
-    @apply bg-white text-black;
-    background-color: white !important;
-    color: black !important;
+  * {
+    @apply border-border;
   }
 
-  * {
-    border-color: hsl(220 6% 88%) !important;
+  /* Force light color scheme at browser level */
+  html {
+    color-scheme: light !important;
+    background-color: white !important;
+  }
+
+  body {
+    @apply font-sans antialiased;
+    background-color: white !important;
+    color: black !important;
+    font-family: var(--font-sans) !important;
+  }
+
+  /* Headings use the Ubuntu font for a nice contrast */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-serif) !important;
   }
 }
 
+/* 
+ * Utility Overrides
+ * Some components might have hardcoded bg-background or text-foreground
+ * that we ensure are white/black respectively.
+ */
 @layer utilities {
-  .bg-background { background-color: white !important; }
-  .text-foreground { color: black !important; }
-  .bg-card { background-color: white !important; }
-  .bg-muted { background-color: #f8f9fa !important; }
+  .bg-background {
+    background-color: white !important;
+  }
+  .text-foreground {
+    color: black !important;
+  }
+  /* Ensure sidebar doesn't get dark */
+  .bg-sidebar {
+    background-color: #fafafa !important;
+  }
 }
