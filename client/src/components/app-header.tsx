@@ -50,19 +50,6 @@ export function AppHeader() {
             </Button>
 
             <Button
-              variant={location === "/dashboard" ? "default" : "ghost"}
-              size="sm"
-              className="gap-2"
-              data-testid="button-nav-dashboard"
-              asChild
-            >
-              <Link href="/dashboard">
-                <LayoutDashboard className="w-4 h-4" />
-                <span className="hidden sm:inline">ScanBlue</span>
-              </Link>
-            </Button>
-
-            <Button
               variant={location === "/auditor" ? "default" : "ghost"}
               size="sm"
               className="gap-2"
