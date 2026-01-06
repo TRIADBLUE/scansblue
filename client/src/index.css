@@ -75,10 +75,29 @@
 }
 
 @layer utilities {
+  /* Systematic Light Mode Force */
   .bg-background { background-color: white !important; }
   .text-foreground { color: black !important; }
+  .bg-card { background-color: white !important; }
+  .bg-muted { background-color: #f8f9fa !important; }
   .bg-sidebar { background-color: #fafafa !important; }
   
+  /* Force dark: overrides to light colors */
+  .dark .bg-slate-900, 
+  .dark .bg-slate-800, 
+  .dark .from-slate-900, 
+  .dark .to-slate-800,
+  .dark .bg-background {
+    background-color: white !important;
+    background-image: none !important;
+  }
+
+  .dark .text-white,
+  .dark .text-slate-400,
+  .dark .text-foreground {
+    color: black !important;
+  }
+
   /* Result-specific style: Archivo Condensed */
   .font-result {
     font-family: var(--font-mono) !important;

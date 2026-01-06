@@ -1,12 +1,11 @@
 import { type Server } from "node:http";
-
+// import businessBlueprintApi from './api/businessblueprint';  // ← REMOVED (File missing)
 import express, {
   type Express,
   type Request,
   Response,
   NextFunction,
 } from "express";
-
 import { registerRoutes } from "./routes";
 
 export function log(message: string, source = "express") {
@@ -16,7 +15,6 @@ export function log(message: string, source = "express") {
     second: "2-digit",
     hour12: true,
   });
-
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
@@ -27,11 +25,13 @@ declare module 'http' {
     rawBody: unknown
   }
 }
+
 app.use(express.json({
   verify: (req, _res, buf) => {
     req.rawBody = buf;
   }
 }));
+
 app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
@@ -64,6 +64,9 @@ app.use((req, res, next) => {
   next();
 });
 
+// ← REMOVED: BusinessBlueprint API routes (File missing)
+// app.use('/api/businessblueprint', businessBlueprintApi);
+
 export default async function runApp(
   setup: (app: Express, server: Server) => Promise<void>,
 ) {
@@ -86,6 +89,7 @@ export default async function runApp(
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
+
   server.listen({
     port,
     host: "0.0.0.0",

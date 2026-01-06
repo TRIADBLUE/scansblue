@@ -97,14 +97,14 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 sm:p-8">
+    <div className="min-h-screen bg-white p-4 sm:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-2">
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-2">
             ScanBlue
           </h1>
-          <p className="text-slate-600 dark:text-slate-400">
+          <p className="text-slate-600">
             Monitor and analyze all your connected services
           </p>
         </div>
