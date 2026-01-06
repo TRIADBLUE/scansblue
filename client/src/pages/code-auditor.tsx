@@ -377,7 +377,12 @@ export default function CodeAuditor() {
     <div className="flex h-[calc(100vh-64px)]">
       {/* Sidebar */}
       <div className="w-60 border-r bg-muted/30 p-4 flex flex-col overflow-y-auto">
-        <Button onClick={createConversation} className="w-full mb-4 gap-2" size="sm">
+        <Button 
+          onClick={createConversation} 
+          className="w-full mb-4 gap-2 bg-transparent border-[#A00028] text-[#A00028] hover:bg-[#A00028]/10" 
+          variant="outline"
+          size="sm"
+        >
           <Plus className="w-4 h-4" />
           New Chat
         </Button>
@@ -387,10 +392,10 @@ export default function CodeAuditor() {
             <div
               key={conv.id}
               onClick={() => setCurrentConversationId(conv.id)}
-              className={`p-3 rounded-lg cursor-pointer text-sm transition-colors ${
+              className={`p-3 rounded-lg cursor-pointer text-sm transition-colors border ${
                 currentConversationId === conv.id
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-muted text-foreground"
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "border-[#A00028] text-[#A00028] bg-transparent hover:bg-[#A00028]/10"
               }`}
               data-testid={`button-conversation-${conv.id}`}
             >
@@ -538,7 +543,7 @@ export default function CodeAuditor() {
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading || auditMutation.isPending || isListening}
-                  className="gap-2"
+                  className="gap-2 border-[#A00028] text-[#A00028] bg-transparent hover:bg-[#A00028]/10"
                   data-testid="button-attach"
                 >
                   <Upload className="w-4 h-4" />
@@ -550,7 +555,7 @@ export default function CodeAuditor() {
                   size="sm"
                   onClick={toggleListening}
                   disabled={uploading || auditMutation.isPending}
-                  className="gap-2"
+                  className={`gap-2 ${!isListening ? "border-[#A00028] text-[#A00028] bg-transparent hover:bg-[#A00028]/10" : ""}`}
                   data-testid="button-voice"
                 >
                   {isListening ? (

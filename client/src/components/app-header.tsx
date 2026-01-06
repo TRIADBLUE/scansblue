@@ -24,9 +24,9 @@ export function AppHeader() {
           {/* Navigation */}
           <nav className="flex items-center gap-2">
             <Button
-              variant={location === "/" ? "default" : "ghost"}
+              variant={location === "/" ? "default" : "outline"}
               size="sm"
-              className="gap-2"
+              className={`gap-2 ${location !== "/" ? "border-[#A00028] text-[#A00028] bg-transparent hover:bg-[#A00028]/10" : ""}`}
               data-testid="button-nav-home"
               asChild
             >
@@ -37,9 +37,9 @@ export function AppHeader() {
             </Button>
 
             <Button
-              variant={location === "/analyze" ? "default" : "ghost"}
+              variant={location === "/analyze" ? "default" : "outline"}
               size="sm"
-              className="gap-2"
+              className={`gap-2 ${location !== "/analyze" ? "border-[#A00028] text-[#A00028] bg-transparent hover:bg-[#A00028]/10" : ""}`}
               data-testid="button-nav-analyze"
               asChild
             >
@@ -50,9 +50,9 @@ export function AppHeader() {
             </Button>
 
             <Button
-              variant={location === "/auditor" ? "default" : "ghost"}
+              variant={location === "/auditor" ? "default" : "outline"}
               size="sm"
-              className="gap-2"
+              className={`gap-2 ${location !== "/auditor" ? "border-[#A00028] text-[#A00028] bg-transparent hover:bg-[#A00028]/10" : ""}`}
               data-testid="button-nav-auditor"
               asChild
             >
