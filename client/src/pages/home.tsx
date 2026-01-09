@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Globe, Zap, Search, Check, AlertTriangle, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import agentLogo from "@assets/siteinspetor-logo_1764201469395.png";
 
 interface QuickScanResult {
   url: string;
@@ -127,15 +126,9 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       <div className="container max-w-6xl mx-auto px-4 py-8 sm:py-12">
         <div className="text-center mb-8 sm:mb-12">
-          <div className="flex items-center justify-center mb-4">
-            <img 
-              src={agentLogo}
-              alt="Inspector Agent"
-              className="h-16 sm:h-20 object-contain"
-            />
-          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-3">Website Analysis, Clarified</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Analyze any website with powerful AI-driven inspections. Enter a URL to scan your entire site.
+            Understand structure, performance, and issues at a glance.
           </p>
         </div>
 
