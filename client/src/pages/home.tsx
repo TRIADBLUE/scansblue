@@ -4,16 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Globe, Zap, Eye, MessageSquare } from "lucide-react";
+import { Loader2, Globe, Zap, Eye, Check, X, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { AgentResponse } from "@shared/schema";
 import agentLogo from "@assets/siteinspetor-logo_1764201469395.png";
 
+interface AnalysisResult {
+  label: string;
+  status: 'pending' | 'loading' | 'success' | 'error';
+  summary?: string;
+  fullResult?: AgentResponse;
+}
+
 export default function Home() {
   const [url, setUrl] = useState("");
-  const [analysisType, setAnalysisType] = useState<string | null>(null);
-  const [result, setResult] = useState<AgentResponse | null>(null);
+  const [analysisResults, setAnalysisResults] = useState<Record<string, AnalysisResult>>({});
+  const [selectedResult, setSelectedResult] = useState<string | null>(null);
+  const [isAnalyzingAll, setIsAnalyzingAll] = useState(false);
   const { toast } = useToast();
 
   const analysisMutation = useMutation({
