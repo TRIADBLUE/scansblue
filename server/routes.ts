@@ -298,6 +298,153 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Quick site scan endpoint - crawls site and returns per-category metrics
+  app.post("/api/agent/quick-site-scan", async (req, res) => {
+    try {
+      const { url } = req.body;
+      
+      if (!url) {
+        return res.status(400).json({
+          error: "URL is required",
+        });
+      }
+
+      // Ensure URL has protocol
+      const finalUrl = url.startsWith("http") ? url : `https://${url}`;
+
+      console.log(`[Quick Site Scan] Starting scan for: ${finalUrl}`);
+
+      // Crawl the website with a modest page limit for quick results
+      const { pages } = await crawlWebsite(finalUrl, 10);
+      
+      // Aggregate REAL metrics across all pages
+      let totalButtons = 0;
+      let totalLogos = 0;
+      let totalForms = 0;
+      let totalImages = 0;
+      let totalMissingAlt = 0;
+      let totalNavItems = 0;
+      let totalH1 = 0;
+      let headingIssues = 0;
+      let accessibilityIssues = 0;
+      let hasFavicon = false;
+      let hasLogo = false;
+
+      for (const page of pages) {
+        // Use real metrics from the enhanced crawl
+        if (page.metrics) {
+          totalButtons += page.metrics.buttonCount;
+          totalForms += page.metrics.formCount;
+          totalImages += page.metrics.imageCount;
+          totalNavItems += page.metrics.navItemCount;
+          totalH1 += page.metrics.h1Count;
+          
+          // Logo and favicon - any page having it counts
+          if (page.metrics.hasLogo) hasLogo = true;
+          if (page.metrics.hasFavicon) hasFavicon = true;
+        }
+        
+        // Accessibility issues from existing data
+        totalMissingAlt += page.accessibilityIssues?.missingAltText || 0;
+        accessibilityIssues += page.accessibilityIssues?.missingAriaLabels || 0;
+        accessibilityIssues += (page.accessibilityIssues?.headingIssues?.length || 0);
+        
+        // Heading issues
+        if (page.seoIssues?.missingH1) {
+          headingIssues++;
+        }
+        if (page.seoIssues?.duplicateHeadings) {
+          headingIssues++;
+        }
+      }
+
+      // Calculate unique nav items (avoid counting duplicates across pages)
+      const avgNavItems = pages.length > 0 ? Math.ceil(totalNavItems / pages.length) : 0;
+
+      const response = {
+        url: finalUrl,
+        pagesScanned: pages.length,
+        categories: {
+          buttons: {
+            count: totalButtons,
+            status: totalButtons > 0 ? 'ok' : 'warning',
+            message: totalButtons > 0 ? `Found ${totalButtons} buttons` : 'No buttons detected'
+          },
+          logos: {
+            count: hasLogo ? 1 : 0,
+            status: hasLogo ? 'ok' : 'warning',
+            message: hasLogo ? 'Logo detected' : 'No logo found'
+          },
+          favicon: {
+            found: hasFavicon,
+            status: hasFavicon ? 'ok' : 'error',
+            message: hasFavicon ? 'Favicon present' : 'Missing favicon'
+          },
+          navigation: {
+            items: avgNavItems,
+            status: avgNavItems > 0 ? 'ok' : 'warning',
+            message: `${avgNavItems} navigation items`
+          },
+          accessibility: {
+            issues: accessibilityIssues + totalMissingAlt,
+            status: accessibilityIssues + totalMissingAlt === 0 ? 'ok' : 
+                   accessibilityIssues + totalMissingAlt < 5 ? 'warning' : 'error',
+            message: accessibilityIssues + totalMissingAlt === 0 ? 'No issues' : 
+                    `${accessibilityIssues + totalMissingAlt} issues found`
+          },
+          forms: {
+            count: totalForms,
+            status: 'ok',
+            message: `${totalForms} forms detected`
+          },
+          images: {
+            count: totalImages,
+            missingAlt: totalMissingAlt,
+            status: totalMissingAlt === 0 ? 'ok' : 
+                   totalMissingAlt < 5 ? 'warning' : 'error',
+            message: totalMissingAlt === 0 ? 'All images have alt text' : 
+                    `${totalMissingAlt} images missing alt text`
+          },
+          headings: {
+            h1Count: totalH1,
+            issues: headingIssues,
+            status: headingIssues === 0 ? 'ok' : 
+                   headingIssues < 3 ? 'warning' : 'error',
+            message: headingIssues === 0 ? 'Heading structure OK' : 
+                    `${headingIssues} heading issues`
+          }
+        },
+        summary: `Scanned ${pages.length} pages on ${new URL(finalUrl).hostname}. ` +
+                 `Found ${totalButtons} buttons, ${totalForms} forms, ${totalImages} images. ` +
+                 `${accessibilityIssues + totalMissingAlt} accessibility issues, ` +
+                 `${headingIssues} heading issues. ` +
+                 (accessibilityIssues + totalMissingAlt + headingIssues === 0 
+                   ? 'Site looks healthy!' 
+                   : 'Some improvements recommended.')
+      };
+
+      console.log(`[Quick Site Scan] Completed: ${pages.length} pages scanned`);
+      res.json(response);
+
+    } catch (error: any) {
+      console.error("Quick site scan error:", error);
+
+      if (error.message?.includes("timeout")) {
+        return res.status(504).json({
+          error: "Scan timed out. The website may be slow or unreachable.",
+        });
+      } else if (error.message?.includes("browser")) {
+        return res.status(503).json({
+          error: "Browser service unavailable.",
+        });
+      } else {
+        return res.status(500).json({
+          error: `Scan failed: ${error.message || "Unknown error"}`,
+        });
+      }
+    }
+  });
+
   // Code audit endpoint using DeepSeek
   app.post("/api/audit", async (req, res) => {
     try {

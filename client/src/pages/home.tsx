@@ -4,60 +4,66 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Globe, Zap, Eye, Check, X, Search } from "lucide-react";
+import { Loader2, Globe, Zap, Search, Check, AlertTriangle, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import type { AgentResponse } from "@shared/schema";
 import agentLogo from "@assets/siteinspetor-logo_1764201469395.png";
 
-interface AnalysisResult {
-  label: string;
-  status: 'pending' | 'loading' | 'success' | 'error';
-  summary?: string;
-  fullResult?: AgentResponse;
+interface QuickScanResult {
+  url: string;
+  pagesScanned: number;
+  categories: {
+    buttons: { count: number; status: 'ok' | 'warning' | 'error'; message: string };
+    logos: { count: number; status: 'ok' | 'warning' | 'error'; message: string };
+    favicon: { found: boolean; status: 'ok' | 'warning' | 'error'; message: string };
+    navigation: { items: number; status: 'ok' | 'warning' | 'error'; message: string };
+    accessibility: { issues: number; status: 'ok' | 'warning' | 'error'; message: string };
+    forms: { count: number; status: 'ok' | 'warning' | 'error'; message: string };
+    images: { count: number; missingAlt: number; status: 'ok' | 'warning' | 'error'; message: string };
+    headings: { h1Count: number; issues: number; status: 'ok' | 'warning' | 'error'; message: string };
+  };
+  summary: string;
 }
+
+const categoryConfig = [
+  { key: 'buttons', label: 'Buttons', desc: 'Interactive elements count' },
+  { key: 'logos', label: 'Logos', desc: 'Logo detection' },
+  { key: 'favicon', label: 'Favicon', desc: 'Browser icon check' },
+  { key: 'navigation', label: 'Navigation', desc: 'Menu structure' },
+  { key: 'accessibility', label: 'Accessibility', desc: 'A11y issues' },
+  { key: 'forms', label: 'Forms', desc: 'Form elements' },
+  { key: 'images', label: 'Images', desc: 'Image analysis' },
+  { key: 'headings', label: 'Headings', desc: 'Heading structure' },
+] as const;
 
 export default function Home() {
   const [url, setUrl] = useState("");
-  const [analysisResults, setAnalysisResults] = useState<Record<string, AnalysisResult>>({});
-  const [selectedResult, setSelectedResult] = useState<string | null>(null);
-  const [isAnalyzingAll, setIsAnalyzingAll] = useState(false);
+  const [scanResult, setScanResult] = useState<QuickScanResult | null>(null);
   const { toast } = useToast();
 
-  const analysisMutation = useMutation({
-    mutationFn: async (question: string) => {
-      const response = await apiRequest("POST", "/api/agent", { content: question });
-      return await response.json() as AgentResponse;
+  const scanMutation = useMutation({
+    mutationFn: async (targetUrl: string) => {
+      const response = await apiRequest("POST", "/api/agent/quick-site-scan", { url: targetUrl });
+      return await response.json() as QuickScanResult;
     },
     onSuccess: (data) => {
-      setResult(data);
+      setScanResult(data);
       toast({
-        title: "Analysis Complete",
-        description: "Website analysis successful.",
+        title: "Scan Complete",
+        description: `Analyzed ${data.pagesScanned} pages successfully.`,
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Analysis Failed",
-        description: error.message || "Failed to analyze website.",
+        title: "Scan Failed",
+        description: error.message || "Failed to scan website.",
         variant: "destructive",
       });
     },
   });
 
-  const analysisButtons = [
-    { label: "Buttons", desc: "List all buttons with text, links, location, state", question: `List all buttons on ${url} with their text, links, location on page, and styling state` },
-    { label: "Logos", desc: "Find and screenshot all logo instances", question: `Find all logo instances on ${url}, show where they appear and their attributes` },
-    { label: "Favicon", desc: "Check favicon presence", question: `What is the favicon on ${url}?` },
-    { label: "Navigation", desc: "Visual tree of menu structure", question: `Analyze the navigation structure on ${url} as a visual tree with menu hierarchy, links, and button names` },
-    { label: "Accessibility", desc: "Check accessibility issues", question: `Check accessibility issues on ${url}` },
-    { label: "Forms", desc: "Extract form fields and types", question: `Find all forms on ${url} and list their fields, types, and required status` },
-    { label: "Images", desc: "Analyze all images on page", question: `Analyze all images on ${url} including alt text coverage` },
-    { label: "Headings", desc: "Check heading structure", question: `Analyze the heading structure on ${url} for H1-H6 hierarchy and issues` },
-    { label: "Comprehensive", desc: "Full multi-section website audit", question: `Perform a comprehensive analysis of ${url} including all elements: buttons, logos, navigation, forms, images, headings, and accessibility issues` },
-  ];
-
-  const handleAnalysis = (question: string, type: string) => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!url.trim()) {
       toast({
         title: "URL Required",
@@ -66,16 +72,60 @@ export default function Home() {
       });
       return;
     }
-    setAnalysisType(type);
-    analysisMutation.mutate(question);
+    scanMutation.mutate(url);
   };
 
-  const isLoading = analysisMutation.isPending;
+  const handleClear = () => {
+    setUrl("");
+    setScanResult(null);
+    scanMutation.reset();
+  };
+
+  const isLoading = scanMutation.isPending;
+
+  const getStatusIcon = (status: 'ok' | 'warning' | 'error') => {
+    switch (status) {
+      case 'ok':
+        return <Check className="w-4 h-4 text-green-500" />;
+      case 'warning':
+        return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
+      case 'error':
+        return <X className="w-4 h-4 text-red-500" />;
+    }
+  };
+
+  const getResultDisplay = (key: string, result: QuickScanResult) => {
+    const cat = result.categories[key as keyof typeof result.categories];
+    if (!cat) return null;
+    
+    if (key === 'favicon') {
+      const faviconCat = cat as typeof result.categories.favicon;
+      return faviconCat.found ? 'Found' : 'Missing';
+    }
+    if (key === 'accessibility') {
+      const a11yCat = cat as typeof result.categories.accessibility;
+      return a11yCat.issues === 0 ? 'Approved' : `${a11yCat.issues} issues`;
+    }
+    if (key === 'images') {
+      const imgCat = cat as typeof result.categories.images;
+      return imgCat.missingAlt > 0 ? `${imgCat.count} (${imgCat.missingAlt} missing alt)` : `Found ${imgCat.count}`;
+    }
+    if (key === 'headings') {
+      const headCat = cat as typeof result.categories.headings;
+      return headCat.issues > 0 ? `${headCat.issues} issues` : `${headCat.h1Count} H1`;
+    }
+    if ('count' in cat) {
+      return `Found ${cat.count}`;
+    }
+    if ('items' in cat) {
+      return `${(cat as typeof result.categories.navigation).items} items`;
+    }
+    return cat.message;
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-6xl mx-auto px-4 py-8 sm:py-12">
-        {/* Header */}
         <div className="text-center mb-8 sm:mb-12">
           <div className="flex items-center justify-center mb-4">
             <img 
@@ -85,11 +135,10 @@ export default function Home() {
             />
           </div>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Analyze any website with powerful AI-driven inspections. Enter a URL and choose your analysis.
+            Analyze any website with powerful AI-driven inspections. Enter a URL to scan your entire site.
           </p>
         </div>
 
-        {/* URL Input Card */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -97,14 +146,14 @@ export default function Home() {
               Website URL
             </CardTitle>
             <CardDescription>
-              Enter the website you want to analyze
+              Enter the website you want to analyze - we'll crawl and scan the entire site
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col sm:flex-row gap-3">
+            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
               <Input
                 data-testid="input-url"
-                type="url"
+                type="text"
                 placeholder="e.g., example.com or https://example.com"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
@@ -112,88 +161,98 @@ export default function Home() {
                 className="flex-1"
               />
               <Button
-                data-testid="button-clear-url"
+                data-testid="button-submit"
+                type="submit"
+                disabled={isLoading || !url.trim()}
+              >
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Search className="w-4 h-4 mr-2" />
+                )}
+                {isLoading ? 'Scanning...' : 'Analyze Site'}
+              </Button>
+              <Button
+                data-testid="button-clear"
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  setUrl("");
-                  setResult(null);
-                  analysisMutation.reset();
-                }}
+                onClick={handleClear}
                 disabled={isLoading}
               >
                 Clear
               </Button>
-            </div>
+            </form>
           </CardContent>
         </Card>
 
-        {/* Analysis Options */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="w-5 h-5" />
               Quick Analysis
+              {scanResult && (
+                <Badge variant="secondary" className="ml-2">
+                  {scanResult.pagesScanned} pages scanned
+                </Badge>
+              )}
             </CardTitle>
             <CardDescription>
-              Choose what to analyze on the website
+              {scanResult ? 'Results from site-wide scan' : 'Enter a URL above and click "Analyze Site" to scan all categories'}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {analysisButtons.map((btn) => (
-                <div key={btn.label} className="space-y-1">
-                  <Button
-                    data-testid={`button-analysis-${btn.label.toLowerCase().replace(/\s+/g, "-")}`}
-                    onClick={() => handleAnalysis(btn.question, btn.label)}
-                    disabled={isLoading || !url.trim()}
-                    variant={analysisType === btn.label && isLoading ? "default" : "outline"}
-                    className="w-full justify-start"
-                    size="sm"
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {categoryConfig.map((cat) => {
+                const result = scanResult?.categories[cat.key as keyof QuickScanResult['categories']];
+                const status = result?.status;
+                
+                return (
+                  <div 
+                    key={cat.key}
+                    data-testid={`category-${cat.key}`}
+                    className="flex items-center justify-between p-3 rounded-lg border bg-card"
                   >
-                    {analysisType === btn.label && isLoading ? (
-                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                    ) : (
-                      <Eye className="w-3 h-3 mr-1" />
+                    <div className="flex items-center gap-2">
+                      {isLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                      ) : status ? (
+                        getStatusIcon(status)
+                      ) : (
+                        <div className="w-4 h-4 rounded-full bg-muted" />
+                      )}
+                      <div>
+                        <p className="font-medium text-sm">{cat.label}</p>
+                        <p className="text-xs text-muted-foreground">{cat.desc}</p>
+                      </div>
+                    </div>
+                    {scanResult && (
+                      <Badge 
+                        variant={status === 'ok' ? 'default' : status === 'warning' ? 'secondary' : 'destructive'}
+                        className="text-xs whitespace-nowrap"
+                        data-testid={`result-${cat.key}`}
+                      >
+                        {getResultDisplay(cat.key, scanResult)}
+                      </Badge>
                     )}
-                    {btn.label}
-                  </Button>
-                  <p className="text-xs text-muted-foreground px-1">{btn.desc}</p>
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
 
-        {/* Results */}
-        {result && (
-          <Card data-testid="card-result">
+        {scanResult && (
+          <Card data-testid="card-summary">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="w-5 h-5" />
-                Analysis Result - {analysisType}
+                Summary
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="prose prose-sm max-w-none">
-                <div
-                  data-testid="text-result"
-                  className="whitespace-pre-wrap text-foreground leading-relaxed text-sm font-result"
-                >
-                  {result.content}
-                </div>
-              </div>
-              {result.screenshot && (
-                <div className="mt-6">
-                  <p className="text-sm font-medium text-muted-foreground mb-3">Screenshot:</p>
-                  <img
-                    src={`data:image/png;base64,${result.screenshot}`}
-                    alt="Website screenshot"
-                    className="max-w-full border rounded"
-                    data-testid="img-screenshot"
-                  />
-                </div>
-              )}
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap font-result" data-testid="text-summary">
+                {scanResult.summary}
+              </p>
             </CardContent>
           </Card>
         )}

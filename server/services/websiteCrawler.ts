@@ -23,6 +23,15 @@ export interface CrawlResult {
     largeImages: number;
     unoptimizedAssets: number;
   };
+  metrics?: {
+    buttonCount: number;
+    formCount: number;
+    imageCount: number;
+    navItemCount: number;
+    hasLogo: boolean;
+    hasFavicon: boolean;
+    h1Count: number;
+  };
 }
 
 const API_KEY = process.env.BROWSERLESS_API_KEY;
@@ -169,25 +178,64 @@ async function analyzePageQuick(pageUrl: string): Promise<CrawlResult> {
   const analyzeCode = `
 export default async function ({ page }) {
   await page.goto('${pageUrl}', { waitUntil: 'domcontentloaded', timeout: 10000 });
+  
+  // Wait for content to render
+  await page.evaluate(() => new Promise(r => setTimeout(r, 500)));
+  
   const title = await page.title();
   
-  // Quick accessibility check
+  // Count images and check alt text
   const images = await page.$$('img');
+  let imageCount = images.length;
   let missingAltText = 0;
   for (const img of images) {
     const alt = await img.evaluate(el => el.getAttribute('alt'));
     if (!alt || alt.trim() === '') missingAltText++;
   }
   
-  // Quick SEO check
+  // Count buttons and interactive elements
+  const buttons = await page.$$('button, [role="button"], input[type="submit"], input[type="button"], a.btn, a.button');
+  const buttonCount = buttons.length;
+  
+  // Count forms
+  const forms = await page.$$('form');
+  const formCount = forms.length;
+  
+  // Count navigation items
+  const navItems = await page.$$('nav a, header a, [role="navigation"] a');
+  const navItemCount = navItems.length;
+  
+  // Check for logo
+  const logoElements = await page.$$('img[class*="logo"], img[alt*="logo"], img[src*="logo"], [class*="logo"] img, a[class*="logo"] img');
+  const hasLogo = logoElements.length > 0;
+  
+  // Check for favicon
+  const favicon = await page.$('link[rel="icon"], link[rel="shortcut icon"]');
+  const hasFavicon = favicon !== null;
+  
+  // Count headings
   const h1s = await page.$$('h1');
+  const h1Count = h1s.length;
+  
+  // Check meta description
   const metaDesc = await page.$eval('meta[name="description"]', el => el?.getAttribute('content') || null).catch(() => null);
+  
+  // Check for missing ARIA labels on interactive elements
+  const interactives = await page.$$('button:not([aria-label]), [role="button"]:not([aria-label])');
+  const missingAriaLabels = interactives.length;
   
   return {
     title,
+    imageCount,
     missingAltText,
-    h1Count: h1s.length,
-    hasMetaDescription: !!metaDesc
+    buttonCount,
+    formCount,
+    navItemCount,
+    hasLogo,
+    hasFavicon,
+    h1Count,
+    hasMetaDescription: !!metaDesc,
+    missingAriaLabels
   };
 }
 `;
@@ -197,7 +245,7 @@ export default async function ({ page }) {
       method: "POST",
       headers: { "Content-Type": "application/javascript" },
       body: analyzeCode,
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(20000),
     });
 
     const data = await response.json();
@@ -208,7 +256,7 @@ export default async function ({ page }) {
       status: 200,
       accessibilityIssues: {
         missingAltText: data.missingAltText || 0,
-        missingAriaLabels: 0,
+        missingAriaLabels: data.missingAriaLabels || 0,
         headingIssues: []
       },
       contentIssues: {
@@ -224,6 +272,15 @@ export default async function ({ page }) {
       performance: {
         largeImages: 0,
         unoptimizedAssets: 0
+      },
+      metrics: {
+        buttonCount: data.buttonCount || 0,
+        formCount: data.formCount || 0,
+        imageCount: data.imageCount || 0,
+        navItemCount: data.navItemCount || 0,
+        hasLogo: data.hasLogo || false,
+        hasFavicon: data.hasFavicon || false,
+        h1Count: data.h1Count || 0
       }
     };
   } catch (error) {
@@ -234,7 +291,16 @@ export default async function ({ page }) {
       accessibilityIssues: { missingAltText: 0, missingAriaLabels: 0, headingIssues: [] },
       contentIssues: { brokenLinks: [], missingImages: 0, emptyHeadings: 0 },
       seoIssues: { noMetaDescription: false, duplicateHeadings: false, missingH1: false },
-      performance: { largeImages: 0, unoptimizedAssets: 0 }
+      performance: { largeImages: 0, unoptimizedAssets: 0 },
+      metrics: {
+        buttonCount: 0,
+        formCount: 0,
+        imageCount: 0,
+        navItemCount: 0,
+        hasLogo: false,
+        hasFavicon: false,
+        h1Count: 0
+      }
     };
   }
 }
