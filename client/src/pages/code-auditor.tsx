@@ -420,7 +420,7 @@ export default function CodeAuditor() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         <div className="py-4 px-6 border-b">
-          <h1 className="text-2xl font-bold">Independent Analyst</h1>
+          <h1 className="text-2xl font-bold">Code Auditor</h1>
           <p className="text-sm text-muted-foreground">
             Paste text, questions, or details. Ask anything. Get honest analysis.
           </p>

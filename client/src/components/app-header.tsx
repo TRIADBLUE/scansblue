@@ -32,7 +32,7 @@ export function AppHeader() {
             >
               <Link href="/">
                 <Sparkles className="w-4 h-4" />
-                <span className="hidden sm:inline">Fast Check</span>
+                <span className="hidden sm:inline">Quick Analysis</span>
               </Link>
             </Button>
 
@@ -45,7 +45,7 @@ export function AppHeader() {
             >
               <Link href="/analyze">
                 <List className="w-4 h-4" />
-                <span className="hidden sm:inline">Full Report</span>
+                <span className="hidden sm:inline">Comprehensive Analysis</span>
               </Link>
             </Button>
 
@@ -58,7 +58,7 @@ export function AppHeader() {
             >
               <Link href="/auditor">
                 <Code2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Auditor</span>
+                <span className="hidden sm:inline">Code Auditor</span>
               </Link>
             </Button>
           </nav>

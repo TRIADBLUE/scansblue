@@ -59,7 +59,7 @@ export default function WebsiteAnalysis() {
     <div className="min-h-screen bg-white p-4 sm:p-8">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-2">Full Report</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-2">Comprehensive Analysis</h1>
           <p className="text-slate-600">
             Crawl your entire website and generate a prioritized task list to improve it
           </p>
