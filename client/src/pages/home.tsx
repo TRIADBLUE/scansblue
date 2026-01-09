@@ -126,7 +126,10 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       <div className="container max-w-6xl mx-auto px-4 py-8 sm:py-12">
         <div className="text-center mb-8 sm:mb-12">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-3">Website Analysis, Clarified</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-3">
+            <span style={{ color: '#A00028' }}>Website Analysis,</span>{' '}
+            <span style={{ color: '#0028A0' }}>Clarified</span>
+          </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Understand structure, performance, and issues at a glance.
           </p>
