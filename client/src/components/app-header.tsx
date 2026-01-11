@@ -39,7 +39,7 @@ export function AppHeader() {
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 border-[#A00028] text-[#A00028] bg-transparent hover:bg-[#A00028]/10"
+                className="gap-2 border-[#A00028] text-[#A00028] bg-transparent hover:bg-[#A00028]/10 shadow-none"
                 data-testid="button-nav-dropdown"
               >
                 <currentItem.icon className="w-4 h-4" />

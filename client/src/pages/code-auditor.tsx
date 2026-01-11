@@ -555,7 +555,7 @@ export default function CodeAuditor() {
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading || auditMutation.isPending || isListening}
-                  className="gap-2 border-[#A00028] text-[#A00028] bg-transparent hover:bg-[#A00028]/10"
+                  className="gap-2 border-[#A00028] text-[#A00028] bg-transparent hover:bg-[#A00028]/10 shadow-none"
                   data-testid="button-attach"
                 >
                   <Upload className="w-4 h-4" />
@@ -567,7 +567,7 @@ export default function CodeAuditor() {
                   size="sm"
                   onClick={toggleListening}
                   disabled={uploading || auditMutation.isPending}
-                  className={`gap-2 ${!isListening ? "border-[#A00028] text-[#A00028] bg-transparent hover:bg-[#A00028]/10" : ""}`}
+                  className={`gap-2 shadow-none ${!isListening ? "border-[#A00028] text-[#A00028] bg-transparent hover:bg-[#A00028]/10" : ""}`}
                   data-testid="button-voice"
                 >
                   {isListening ? (
