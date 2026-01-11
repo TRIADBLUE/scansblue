@@ -138,6 +138,21 @@ export default function Home() {
           </p>
         </div>
 
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold mb-2 flex items-center gap-2 text-foreground">
+            <Zap className="w-5 h-5" />
+            Quick Analysis
+            {scanResult && (
+              <Badge variant="secondary" className="ml-2">
+                {scanResult.pagesScanned} pages scanned
+              </Badge>
+            )}
+          </h2>
+          <p className="text-muted-foreground">
+            {scanResult ? 'Results from site-wide scan' : 'Enter a URL and click "Analyze Site" to scan all categories'}
+          </p>
+        </div>
+
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -149,7 +164,7 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 mb-6">
               <Input
                 data-testid="input-url"
                 type="text"
@@ -181,25 +196,7 @@ export default function Home() {
                 Clear
               </Button>
             </form>
-          </CardContent>
-        </Card>
 
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="w-5 h-5" />
-              Quick Analysis
-              {scanResult && (
-                <Badge variant="secondary" className="ml-2">
-                  {scanResult.pagesScanned} pages scanned
-                </Badge>
-              )}
-            </CardTitle>
-            <CardDescription>
-              {scanResult ? 'Results from site-wide scan' : 'Enter a URL above and click "Analyze Site" to scan all categories'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {categoryConfig.map((cat) => {
                 const result = scanResult?.categories[cat.key as keyof QuickScanResult['categories']];
