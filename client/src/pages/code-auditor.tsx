@@ -420,7 +420,19 @@ export default function CodeAuditor() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         <div className="py-4 px-6 border-b">
-          <h1 className="text-2xl font-bold">Code and Site Auditor</h1>
+          <div className="text-center mb-6">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-primary">
+              Your Site Inspector Agent
+            </h1>
+            <p className="text-lg sm:text-xl mb-2">
+              <span className="text-secondary">Website Analysis,</span>{' '}
+              <span className="text-primary">Clarified</span>
+            </p>
+            <p className="text-sm max-w-2xl mx-auto text-foreground">
+              Understand structure, performance, and hidden issues instantly
+            </p>
+          </div>
+          <h2 className="text-xl font-bold">Code and Site Auditor</h2>
           <p className="text-sm text-muted-foreground">
             Paste text, questions, or details. Ask anything. Get real feedback.
           </p>

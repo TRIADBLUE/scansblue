@@ -59,10 +59,23 @@ export default function WebsiteAnalysis() {
   return (
     <div className="min-h-screen p-4 sm:p-8 bg-background">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-foreground">
-            Comprehensive Analysis
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="text-3xl sm:text-4xl font-bold mb-3 text-primary">
+            Your Site Inspector Agent
           </h1>
+          <p className="text-xl sm:text-2xl mb-3">
+            <span className="text-secondary">Website Analysis,</span>{' '}
+            <span className="text-primary">Clarified</span>
+          </p>
+          <p className="text-lg max-w-2xl mx-auto text-foreground">
+            Understand structure, performance, and hidden issues instantly
+          </p>
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold mb-2 text-foreground">
+            Comprehensive Analysis
+          </h2>
           <p className="text-muted-foreground">
             Crawl your entire website and generate a prioritized task list to improve it
           </p>
