@@ -1,4 +1,4 @@
-# Site Inspector Agent - Design Guidelines
+# ScansBlue - Design Guidelines
 
 ## Project Classification
 

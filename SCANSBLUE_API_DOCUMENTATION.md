@@ -1,4 +1,4 @@
-# SiteInspector - Complete API Documentation
+# ScansBlue - Complete API Documentation
 
 **Version:** 1.0.0  
 **Last Updated:** January 2026
@@ -20,7 +20,7 @@
 
 ## Overview
 
-SiteInspector is a website analysis tool with three main modes:
+ScansBlue is a website analysis tool with three main modes:
 
 | Mode | Purpose | Speed | AI Used |
 |------|---------|-------|---------|
@@ -104,7 +104,7 @@ SiteInspector is a website analysis tool with three main modes:
 
 ## Internal API Endpoints
 
-These endpoints power the SiteInspector UI.
+These endpoints power the ScansBlue UI.
 
 ### `GET /api/health`
 Health check for browser automation service.
@@ -309,7 +309,7 @@ Health check.
 ```json
 {
   "success": true,
-  "service": "SiteInspector API",
+  "service": "ScansBlue API",
   "client": "BusinessBlueprint",
   "timestamp": "2026-01-09T12:00:00.000Z",
   "version": "1.0.0"
@@ -409,7 +409,7 @@ Queue a comprehensive report (Premium tier required).
 {
   "success": true,
   "reportId": "rpt_abc123",
-  "reportUrl": "https://siteinspector.dev/reports/rpt_abc123",
+  "reportUrl": "https://scansblue.dev/reports/rpt_abc123",
   "status": "queued",
   "estimatedCompletion": "2026-01-09T12:05:00.000Z",
   "webhookUrl": "https://your-webhook.com/callback"

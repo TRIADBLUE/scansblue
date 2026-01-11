@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { CheckCircle, AlertCircle, Loader2, Accessibility, Zap, Search, Users, Shield, FileText, Pin } from "lucide-react";
 import type { WebsiteAnalysisResponse } from "@shared/schema";
 
 export default function WebsiteAnalysis() {
@@ -44,23 +44,26 @@ export default function WebsiteAnalysis() {
   };
 
   const getCategoryIcon = (category: string) => {
-    const icons: Record<string, string> = {
-      accessibility: "♿",
-      performance: "⚡",
-      seo: "🔍",
-      ux: "👥",
-      security: "🔒",
-      content: "📝",
+    const iconMap: Record<string, typeof Accessibility> = {
+      accessibility: Accessibility,
+      performance: Zap,
+      seo: Search,
+      ux: Users,
+      security: Shield,
+      content: FileText,
     };
-    return icons[category] || "📌";
+    const IconComponent = iconMap[category] || Pin;
+    return <IconComponent className="w-4 h-4" />;
   };
 
   return (
-    <div className="min-h-screen bg-white p-4 sm:p-8">
+    <div className="min-h-screen p-4 sm:p-8 bg-background">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-2">Comprehensive Analysis</h1>
-          <p className="text-slate-600">
+          <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-foreground">
+            ScansBlue Comprehensive Analysis
+          </h1>
+          <p className="text-muted-foreground">
             Crawl your entire website and generate a prioritized task list to improve it
           </p>
         </div>

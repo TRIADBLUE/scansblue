@@ -50,7 +50,7 @@ export default function CodeAuditor() {
       id: "1",
       role: "assistant",
       content:
-        "Hi! I'm your independent analyst powered by DeepSeek AI. Paste any text, questions, system descriptions, or project details you want me to analyze. Ask me anything - I'll give you thorough, honest feedback. What would you like me to look at?",
+        "Hi! I'm your ScansBlue analyst powered by DeepSeek AI. Paste any text, questions, system descriptions, or project details you want me to analyze. Ask me anything - I'll give you thorough, honest feedback. What would you like me to look at?",
       timestamp: new Date(),
     },
   ]);

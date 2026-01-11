@@ -17,7 +17,7 @@ export async function sendWebhook(url: string, payload: WebhookPayload): Promise
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "User-Agent": "SiteInspectorAgent/1.0",
+            "User-Agent": "ScansBlue/1.0",
           },
           body: JSON.stringify(payload),
         });

@@ -126,12 +126,22 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       <div className="container max-w-6xl mx-auto px-4 py-8 sm:py-12">
         <div className="text-center mb-8 sm:mb-12">
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/scansblue-logo.png" 
+              alt="ScansBlue" 
+              className="h-16 object-contain"
+            />
+          </div>
+          <p className="text-sm uppercase tracking-wide mb-2 text-primary">
+            Your Site Inspector Agent
+          </p>
           <h1 className="text-3xl sm:text-4xl font-bold mb-3">
-            <span style={{ color: '#A00028' }}>Website Analysis,</span>{' '}
-            <span style={{ color: '#0000FF' }}>Clarified</span>
+            <span className="text-secondary">Website Analysis,</span>{' '}
+            <span className="text-primary">Clarified</span>
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Understand structure, performance, and issues at a glance.
+          <p className="text-lg max-w-2xl mx-auto text-foreground">
+            Understand structure, performance, and hidden issues instantly
           </p>
         </div>
 

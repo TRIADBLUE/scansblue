@@ -157,7 +157,7 @@ router.post('/full-report', requirePremiumTier, async (req, res) => {
     const response: FullReportResponse = {
       success: true,
       reportId: report.id,
-      reportUrl: `${process.env.SITE_URL || 'https://siteinspector.dev'}/reports/${report.id}`,
+      reportUrl: `${process.env.SITE_URL || 'https://scansblue.com'}/reports/${report.id}`,
       status: report.status,
       estimatedCompletion: report.estimatedCompletion,
       webhookUrl: webhookUrl
@@ -284,7 +284,7 @@ router.post('/auditor', async (req, res) => {
 router.get('/health', (req, res) => {
   res.json({
     success: true,
-    service: 'SiteInspector API',
+    service: 'ScansBlue API',
     client: 'BusinessBlueprint',
     timestamp: new Date().toISOString(),
     version: '1.0.0'

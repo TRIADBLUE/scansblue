@@ -249,7 +249,7 @@ export class FullReportService {
           url: report.url,
           status: report.status,
           completedAt: report.completedAt?.toISOString(),
-          reportUrl: `${process.env.SITE_URL || 'https://siteinspector.dev'}/reports/${report.id}`,
+          reportUrl: `${process.env.SITE_URL || 'https://scansblue.com'}/reports/${report.id}`,
           results: report.status === 'completed' ? report.results : undefined
         })
       });

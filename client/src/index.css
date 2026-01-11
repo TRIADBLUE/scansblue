@@ -3,38 +3,38 @@
 @tailwind utilities;
 
 /* 
- * SYSTEMATIC THEME LOCK & ARCHIVO FONT INTEGRATION
+ * SCANSBLUE BRAND THEME & ARCHIVO FONT INTEGRATION
  */
 :root, .dark {
-  /* Colors - Pure Light Theme */
-  --background: 0 0% 100%;
-  --foreground: 220 6% 10%;
+  /* ScansBlue Brand Colors */
+  --background: 195 100% 97%; /* #EEFBFF Light Blue */
+  --foreground: 260 30% 5%; /* #09080E Triad Black */
   --card: 0 0% 100%;
-  --card-foreground: 220 6% 10%;
+  --card-foreground: 260 30% 5%;
   --popover: 0 0% 100%;
-  --popover-foreground: 220 6% 10%;
-  --primary: 345 100% 31%; /* #A00028 */
+  --popover-foreground: 260 30% 5%;
+  --primary: 240 100% 50%; /* #0000FF Master Blue */
   --primary-foreground: 0 0% 100%;
-  --secondary: 220 10% 96%;
-  --secondary-foreground: 220 6% 10%;
-  --muted: 220 10% 96%;
-  --muted-foreground: 220 6% 45%;
-  --accent: 220 10% 96%;
-  --accent-foreground: 220 6% 10%;
-  --destructive: 0 84% 60%;
+  --secondary: 0 73% 42%; /* #B91C1C Red/Burgundy */
+  --secondary-foreground: 0 0% 100%;
+  --muted: 195 50% 95%;
+  --muted-foreground: 260 20% 40%;
+  --accent: 160 84% 39%; /* #10B981 Green */
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 73% 42%;
   --destructive-foreground: 0 0% 100%;
-  --border: 220 6% 90%;
-  --input: 220 6% 90%;
-  --ring: 345 100% 31%;
+  --border: 195 30% 85%;
+  --input: 195 30% 85%;
+  --ring: 240 100% 50%;
   
-  --sidebar: 0 0% 98%;
-  --sidebar-foreground: 220 6% 15%;
-  --sidebar-primary: 345 100% 31%;
+  --sidebar: 195 100% 97%;
+  --sidebar-foreground: 260 30% 10%;
+  --sidebar-primary: 240 100% 50%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 220 10% 94%;
-  --sidebar-accent-foreground: 220 6% 10%;
-  --sidebar-border: 220 6% 90%;
-  --sidebar-ring: 345 100% 31%;
+  --sidebar-accent: 195 50% 92%;
+  --sidebar-accent-foreground: 260 30% 5%;
+  --sidebar-border: 195 30% 85%;
+  --sidebar-ring: 240 100% 50%;
 
   /* Archivo Variable Font Implementation */
   /* Archivo Content: Normal width */
@@ -53,54 +53,27 @@
   }
 
   html {
-    color-scheme: light !important;
-    background-color: white !important;
+    color-scheme: light;
   }
 
   body {
-    @apply antialiased;
-    background-color: white !important;
-    color: black !important;
-    font-family: var(--font-sans) !important;
-    /* Archivo Content settings */
+    @apply antialiased bg-background text-foreground;
+    font-family: var(--font-sans);
     font-variation-settings: "wdth" 100; 
   }
 
   /* Titles and Headers: Archivo Semi Expanded */
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-serif) !important;
-    font-variation-settings: "wdth" 112.5, "wght" 600 !important;
+    font-family: var(--font-serif);
+    font-variation-settings: "wdth" 112.5, "wght" 600;
     letter-spacing: -0.01em;
   }
 }
 
 @layer utilities {
-  /* Systematic Light Mode Force */
-  .bg-background { background-color: white !important; }
-  .text-foreground { color: black !important; }
-  .bg-card { background-color: white !important; }
-  .bg-muted { background-color: #f8f9fa !important; }
-  .bg-sidebar { background-color: #fafafa !important; }
-  
-  /* Force dark: overrides to light colors */
-  .dark .bg-slate-900, 
-  .dark .bg-slate-800, 
-  .dark .from-slate-900, 
-  .dark .to-slate-800,
-  .dark .bg-background {
-    background-color: white !important;
-    background-image: none !important;
-  }
-
-  .dark .text-white,
-  .dark .text-slate-400,
-  .dark .text-foreground {
-    color: black !important;
-  }
-
   /* Result-specific style: Archivo Condensed */
   .font-result {
-    font-family: var(--font-mono) !important;
-    font-variation-settings: "wdth" 75 !important;
+    font-family: var(--font-mono);
+    font-variation-settings: "wdth" 75;
   }
 }

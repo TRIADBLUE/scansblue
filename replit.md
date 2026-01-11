@@ -1,7 +1,12 @@
-# Site Inspector Agent
+# ScansBlue
 
 ## Overview
-Site Inspector Agent is a backend API service that provides AI-powered website analysis through natural language queries. It integrates headless browser automation (Browserless) and OpenAI's GPT models to inspect live websites and generate conversational responses. The service is designed to work with ConsoleBlue's Agent Chat system, offering capabilities for analyzing website elements (buttons, logos, favicons, navigation, accessibility) and comprehensive website-wide analysis with task list generation. The business vision is to provide a robust, AI-driven tool for web analysis, enhancing efficiency for developers and businesses.
+ScansBlue (formerly Site Inspector Agent) is a backend API service that provides AI-powered website analysis through natural language queries. It integrates headless browser automation (Browserless) and OpenAI's GPT models to inspect live websites and generate conversational responses. The service is designed to work with ConsoleBlue's Agent Chat system, offering capabilities for analyzing website elements (buttons, logos, favicons, navigation, accessibility) and comprehensive website-wide analysis with task list generation. The business vision is to provide a robust, AI-driven tool for web analysis, enhancing efficiency for developers and businesses.
+
+**Brand Identity:**
+- **Tagline**: "Your Site Inspector Agent"
+- **Subheadline**: "Website Analysis, Clarified"
+- **Colors**: Primary #0000FF (Master Blue), Secondary #B91C1C (Red), Accent #10B981 (Green), Background #EEFBFF (Light Blue), Text #09080E (Triad Black)
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -32,7 +37,7 @@ The backend is built with **Express.js and TypeScript** on Node.js, following a 
 
 ### Frontend Architecture
 Built with **React, TypeScript, and Vite**, using **shadcn/ui** components for styling.
--   **Pages**: Home (`/`), Website Analysis (`/analyze`), Dashboard (`/dashboard`).
+-   **Pages**: Home (`/`), Website Analysis (`/analyze`), Code Auditor (`/auditor`), Dashboard (`/dashboard`).
 -   **State Management**: TanStack Query for server state.
 
 ### Data Layer

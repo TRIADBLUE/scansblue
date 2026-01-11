@@ -7,7 +7,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import siteInspectorLogo from "@assets/siteinspetor-logo_1764201469395.png";
 
 const navItems = [
   { path: "/", label: "Quick Analysis", icon: Sparkles },
@@ -22,14 +21,14 @@ export function AppHeader() {
   const otherItems = navItems.filter((item) => item.path !== location);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="container max-w-6xl mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Button variant="ghost" size="sm" asChild className="h-auto p-0">
             <Link href="/">
               <img 
-                src={siteInspectorLogo} 
-                alt="Site Inspector"
+                src="/scansblue-logo.png" 
+                alt="ScansBlue - Your Site Inspector Agent"
                 className="h-8 object-contain"
               />
             </Link>
@@ -40,7 +39,7 @@ export function AppHeader() {
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 border-[#A00028] text-[#A00028] bg-transparent hover:bg-[#A00028]/10"
+                className="gap-2 border-[#0000FF] text-[#0000FF] bg-transparent hover:bg-[#0000FF]/10"
                 data-testid="button-nav-dropdown"
               >
                 <currentItem.icon className="w-4 h-4" />
