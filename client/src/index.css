@@ -11,18 +11,25 @@
   --foreground: 250 27% 4%; /* #09080E Black */
   --card: 0 0% 100%;
   --card-foreground: 250 27% 4%;
+  --card-border: 195 30% 85%;
   --popover: 0 0% 100%;
   --popover-foreground: 250 27% 4%;
+  --popover-border: 195 30% 85%;
   --primary: 240 100% 50%; /* #0000FF Triad Blue - titles & important text */
   --primary-foreground: 0 0% 100%;
+  --primary-border: hsl(240 100% 45%);
   --secondary: 345 100% 31%; /* #A00028 Red - accent color */
   --secondary-foreground: 0 0% 100%;
+  --secondary-border: hsl(345 100% 26%);
   --muted: 195 50% 95%;
   --muted-foreground: 250 10% 40%; /* Neutral gray, no purple */
+  --muted-border: 195 30% 85%;
   --accent: 345 100% 31%; /* #A00028 Red - same as secondary */
   --accent-foreground: 0 0% 100%;
+  --accent-border: hsl(345 100% 26%);
   --destructive: 345 100% 31%;
   --destructive-foreground: 0 0% 100%;
+  --destructive-border: hsl(345 100% 26%);
   --border: 195 30% 85%;
   --input: 195 30% 85%;
   --ring: 240 100% 50%;
@@ -31,8 +38,10 @@
   --sidebar-foreground: 250 27% 10%;
   --sidebar-primary: 240 100% 50%;
   --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-primary-border: hsl(240 100% 45%);
   --sidebar-accent: 195 50% 92%;
   --sidebar-accent-foreground: 250 27% 4%;
+  --sidebar-accent-border: 195 30% 85%;
   --sidebar-border: 195 30% 85%;
   --sidebar-ring: 240 100% 50%;
 
@@ -76,4 +85,30 @@
     font-family: var(--font-mono);
     font-variation-settings: "wdth" 75;
   }
+}
+
+/* Force exact ScansBlue brand colors */
+.bg-primary {
+  background-color: #0000FF !important;
+}
+.text-primary {
+  color: #0000FF !important;
+}
+.border-primary {
+  border-color: #0000FF !important;
+}
+.text-secondary {
+  color: #A00028 !important;
+}
+.bg-secondary {
+  background-color: #A00028 !important;
+}
+.border-secondary {
+  border-color: #A00028 !important;
+}
+.bg-background {
+  background-color: #EEFBFF !important;
+}
+.text-foreground {
+  color: #09080E !important;
 }
