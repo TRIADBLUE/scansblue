@@ -64,8 +64,8 @@ export default function WebsiteAnalysis() {
             Your Site Inspector Agent
           </h1>
           <p className="text-xl sm:text-2xl mb-3">
-            <span className="text-secondary">Website Analysis,</span>{' '}
-            <span className="text-primary">Clarified</span>
+            <span className="text-secondary font-bold">Website Analysis,</span>{' '}
+            <span className="text-primary font-bold">Clarified</span>
           </p>
           <p className="text-lg max-w-2xl mx-auto text-foreground">
             Understand structure, performance, and hidden issues instantly
@@ -104,7 +104,7 @@ export default function WebsiteAnalysis() {
                   Analyzing
                 </>
               ) : (
-                "Analyze"
+                "Submit"
               )}
             </Button>
           </div>
