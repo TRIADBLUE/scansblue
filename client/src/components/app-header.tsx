@@ -23,13 +23,13 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="container max-w-6xl mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-20 items-center justify-between">
           <Button variant="ghost" size="sm" asChild className="h-auto p-0">
             <Link href="/">
               <img 
                 src="/scansblue-logo.png" 
-                alt="ScansBlue - Your Site Inspector Agent"
-                className="h-8 object-contain"
+                alt="Your Site Inspector Agent"
+                className="h-16 object-contain"
               />
             </Link>
           </Button>
