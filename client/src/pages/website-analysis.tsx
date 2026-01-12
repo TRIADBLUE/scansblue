@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertCircle, Loader2, Accessibility, Zap, Search, Users, Shield, FileText, Pin } from "lucide-react";
 import type { WebsiteAnalysisResponse } from "@shared/schema";
+import comprehensiveIcon from "@assets/comprehensive_icon_1768197865904.png";
 
 export default function WebsiteAnalysis() {
   const [url, setUrl] = useState("");
@@ -73,7 +74,8 @@ export default function WebsiteAnalysis() {
         </div>
 
         <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-2 text-foreground">
+          <h2 className="text-2xl font-bold mb-2 text-foreground flex items-center gap-2">
+            <img src={comprehensiveIcon} alt="" className="w-6 h-6" />
             Comprehensive Analysis
           </h2>
           <p className="text-muted-foreground">

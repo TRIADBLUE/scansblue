@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Send, Zap, Upload, Download, X, Plus, Trash2, Mic, Square } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import auditorIcon from "@assets/auditor_icon_1768197865903.png";
 
 interface FileAttachment {
   id: string;
@@ -432,7 +433,10 @@ export default function CodeAuditor() {
               Understand structure, performance, and hidden issues instantly
             </p>
           </div>
-          <h2 className="text-xl font-bold">Code and Site Auditor</h2>
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <img src={auditorIcon} alt="" className="w-6 h-6" />
+            Code and Site Auditor
+          </h2>
           <p className="text-sm text-muted-foreground">
             Paste text, questions, or details. Ask anything. Get real feedback.
           </p>

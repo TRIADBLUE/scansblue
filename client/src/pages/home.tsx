@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Globe, Zap, Search, Check, AlertTriangle, X } from "lucide-react";
+import { Loader2, Globe, Search, Check, AlertTriangle, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import quickAnalysisIcon from "@assets/quick_analysis_icon_1768197865904.png";
 
 interface QuickScanResult {
   url: string;
@@ -140,7 +141,7 @@ export default function Home() {
 
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-2 flex items-center gap-2 text-foreground">
-            <Zap className="w-5 h-5" />
+            <img src={quickAnalysisIcon} alt="" className="w-6 h-6" />
             Quick Analysis
             {scanResult && (
               <Badge variant="secondary" className="ml-2">
