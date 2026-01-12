@@ -33,6 +33,7 @@
   --border: 195 30% 85%;
   --input: 195 30% 85%;
   --ring: 240 100% 50%;
+  --button-outline: hsl(195 30% 85%);
   
   --sidebar: 195 100% 97%;
   --sidebar-foreground: 250 27% 10%;
@@ -111,4 +112,78 @@
 }
 .text-foreground {
   color: #09080E !important;
+}
+
+/* RED BUTTON STYLING - No white accents allowed */
+/* Remove all white from secondary/destructive/accent buttons */
+.bg-secondary,
+.bg-destructive,
+.bg-accent {
+  box-shadow: none !important;
+}
+
+/* Ensure red buttons have red-family focus rings, not white */
+button.bg-secondary:focus-visible,
+button.bg-destructive:focus-visible,
+button.bg-accent:focus-visible,
+[class*="border-[#A00028]"]:focus-visible {
+  outline: none !important;
+  ring-color: #A00028 !important;
+  --tw-ring-color: #A00028 !important;
+  box-shadow: 0 0 0 2px #A00028 !important;
+}
+
+/* Red outline buttons - enforce dark red border, no white anywhere */
+[class*="border-[#A00028]"] {
+  border-color: #A00028 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+[class*="border-[#A00028]"]:hover {
+  box-shadow: none !important;
+}
+
+[class*="border-[#A00028]"]:active {
+  box-shadow: none !important;
+}
+
+/* TRIAD BLUE for Submit/Send buttons - enforced with high specificity */
+button[data-testid="button-submit"],
+button[data-testid="button-send"],
+button[data-testid="button-analyze"],
+button[type="submit"] {
+  background-color: #0000FF !important;
+  color: #FFFFFF !important;
+  border-color: #0000CC !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+button[data-testid="button-submit"]:hover,
+button[data-testid="button-send"]:hover,
+button[data-testid="button-analyze"]:hover,
+button[type="submit"]:hover {
+  background-color: #0000CC !important;
+}
+
+button[data-testid="button-submit"]:focus,
+button[data-testid="button-submit"]:focus-visible,
+button[data-testid="button-send"]:focus,
+button[data-testid="button-send"]:focus-visible,
+button[data-testid="button-analyze"]:focus,
+button[data-testid="button-analyze"]:focus-visible,
+button[type="submit"]:focus,
+button[type="submit"]:focus-visible {
+  box-shadow: 0 0 0 2px #0000FF !important;
+  outline: none !important;
+}
+
+button[data-testid="button-submit"]:disabled,
+button[data-testid="button-send"]:disabled,
+button[data-testid="button-analyze"]:disabled,
+button[type="submit"]:disabled {
+  background-color: #4D4DFF !important;
+  color: #FFFFFF !important;
+  opacity: 0.6 !important;
 }
