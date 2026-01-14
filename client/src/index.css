@@ -1,189 +1,101 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+        @tailwind base;
+        @tailwind components;
+        @tailwind utilities;
 
-/* 
- * SCANSBLUE BRAND THEME & ARCHIVO FONT INTEGRATION
- */
-:root, .dark {
-  /* ScansBlue Brand Colors - APPROVED PALETTE */
-  --background: 195 100% 97%; /* #EEFBFF Light Blue */
-  --foreground: 250 27% 4%; /* #09080E Black */
-  --card: 0 0% 100%;
-  --card-foreground: 250 27% 4%;
-  --card-border: 195 30% 85%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 250 27% 4%;
-  --popover-border: 195 30% 85%;
-  --primary: 240 100% 50%; /* #0000FF Triad Blue - titles & important text */
-  --primary-foreground: 0 0% 100%;
-  --primary-border: hsl(240 100% 45%);
-  --secondary: 345 100% 31%; /* #A00028 Red - accent color */
-  --secondary-foreground: 0 0% 100%;
-  --secondary-border: hsl(345 100% 26%);
-  --muted: 195 50% 95%;
-  --muted-foreground: 250 10% 40%; /* Neutral gray, no purple */
-  --muted-border: 195 30% 85%;
-  --accent: 345 100% 31%; /* #A00028 Red - same as secondary */
-  --accent-foreground: 0 0% 100%;
-  --accent-border: hsl(345 100% 26%);
-  --destructive: 345 100% 31%;
-  --destructive-foreground: 0 0% 100%;
-  --destructive-border: hsl(345 100% 26%);
-  --border: 195 30% 85%;
-  --input: 195 30% 85%;
-  --ring: 240 100% 50%;
-  --button-outline: hsl(195 30% 85%);
-  
-  --sidebar: 195 100% 97%;
-  --sidebar-foreground: 250 27% 10%;
-  --sidebar-primary: 240 100% 50%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-primary-border: hsl(240 100% 45%);
-  --sidebar-accent: 195 50% 92%;
-  --sidebar-accent-foreground: 250 27% 4%;
-  --sidebar-accent-border: 195 30% 85%;
-  --sidebar-border: 195 30% 85%;
-  --sidebar-ring: 240 100% 50%;
+        /* SCANSBLUE BRAND THEME & ARCHIVO FONT INTEGRATION */
+        :root, .dark {
+          --background: 195 100% 97%;
+          --foreground: 250 27% 4%;
+          --card: 0 0% 100%;
+          --card-foreground: 250 27% 4%;
+          --card-border: 195 30% 85%;
+          --popover: 0 0% 100%;
+          --popover-foreground: 250 27% 4%;
+          --popover-border: 195 30% 85%;
+          --primary: 240 100% 50%;
+          --primary-foreground: 0 0% 100%;
+          --primary-border: hsl(240 100% 45%);
+          --secondary: 345 100% 31%;
+          --secondary-foreground: 0 0% 100%;
+          --secondary-border: hsl(345 100% 26%);
+          --muted: 195 50% 95%;
+          --muted-foreground: 250 10% 40%;
+          --muted-border: 195 30% 85%;
+          --accent: 345 100% 31%;
+          --accent-foreground: 0 0% 100%;
+          --accent-border: hsl(345 100% 26%);
+          --destructive: 345 100% 31%;
+          --destructive-foreground: 0 0% 100%;
+          --destructive-border: hsl(345 100% 26%);
+          --border: 195 30% 85%;
+          --input: 195 30% 85%;
+          --ring: 240 100% 50%;
+          --button-outline: hsl(195 30% 85%);
+          --radius: 0.5rem;
 
-  /* Archivo Variable Font Implementation */
-  /* Archivo Content: Normal width */
-  --font-sans: "Archivo", sans-serif;
-  /* Archivo Semi Expanded: wdth 112.5 */
-  --font-serif: "Archivo", sans-serif;
-  /* Archivo Condensed: wdth 75 */
-  --font-mono: "Archivo", sans-serif;
-  
-  --radius: 0.5rem;
-}
+          /* Fonts */
+          --font-sans: "Archivo", sans-serif;
+          --font-serif: "Archivo", sans-serif;
+          --font-mono: "Archivo", monospace;
+        }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
+        /* Apply fonts globally */
+        @layer base {
+          * {
+            @apply border-border;
+            font-family: var(--font-sans) !important;
+          }
 
-  html {
-    color-scheme: light;
-  }
+          html {
+            color-scheme: light;
+          }
 
-  body {
-    @apply antialiased bg-background text-foreground;
-    font-family: var(--font-sans);
-    font-variation-settings: "wdth" 100; 
-  }
+          body {
+            @apply antialiased bg-background text-foreground;
+            font-family: var(--font-sans) !important;
+            font-variation-settings: "wdth" 100;
+          }
 
-  /* Titles and Headers: Archivo Semi Expanded */
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-serif);
-    font-variation-settings: "wdth" 112.5, "wght" 600;
-    letter-spacing: -0.01em;
-  }
-}
+          h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-serif) !important;
+            font-variation-settings: "wdth" 112.5, "wght" 600;
+            letter-spacing: -0.01em;
+          }
 
-@layer utilities {
-  /* Result-specific style: Archivo Condensed */
-  .font-result {
-    font-family: var(--font-mono);
-    font-variation-settings: "wdth" 75;
-  }
-}
+          code, pre, .font-result {
+            font-family: var(--font-mono) !important;
+            font-variation-settings: "wdth" 75;
+          }
+        }
 
-/* Force exact ScansBlue brand colors */
-.bg-primary {
-  background-color: #0000FF !important;
-}
-.text-primary {
-  color: #0000FF !important;
-}
-.border-primary {
-  border-color: #0000FF !important;
-}
-.text-secondary {
-  color: #A00028 !important;
-}
-.bg-secondary {
-  background-color: #A00028 !important;
-}
-.border-secondary {
-  border-color: #A00028 !important;
-}
-.bg-background {
-  background-color: #EEFBFF !important;
-}
-.text-foreground {
-  color: #09080E !important;
-}
+        /* Force exact ScansBlue brand colors for buttons, borders, text, etc. */
+        .bg-primary { background-color: #0000FF !important; }
+        .text-primary { color: #0000FF !important; }
+        .border-primary { border-color: #0000FF !important; }
+        .text-secondary { color: #A00028 !important; }
+        .bg-secondary { background-color: #A00028 !important; }
+        .border-secondary { border-color: #09080E !important; }
+        .bg-background { background-color: #EEFBFF !important; }
+        .text-foreground { color: #09080E !important; }
 
-/* RED BUTTON STYLING - No white accents allowed */
-/* Remove all white from secondary/destructive/accent buttons */
-.bg-secondary,
-.bg-destructive,
-.bg-accent {
-  box-shadow: none !important;
-}
+        /* Remove white glow from red buttons */
+        .bg-secondary, .bg-destructive, .bg-accent { box-shadow: none !important; }
+        button.bg-secondary:focus-visible, button.bg-destructive:focus-visible, button.bg-accent:focus-visible {
+          outline: none !important;
+          --tw-ring-color: #A00028 !important;
+          box-shadow: 0 0 0 2px #A00028 !important;
+        }
 
-/* Ensure red buttons have red-family focus rings, not white */
-button.bg-secondary:focus-visible,
-button.bg-destructive:focus-visible,
-button.bg-accent:focus-visible,
-[class*="border-[#A00028]"]:focus-visible {
-  outline: none !important;
-  ring-color: #A00028 !important;
-  --tw-ring-color: #A00028 !important;
-  box-shadow: 0 0 0 2px #A00028 !important;
-}
-
-/* Red outline buttons - enforce dark red border, no white anywhere */
-[class*="border-[#A00028]"] {
-  border-color: #A00028 !important;
-  box-shadow: none !important;
-  outline: none !important;
-}
-
-[class*="border-[#A00028]"]:hover {
-  box-shadow: none !important;
-}
-
-[class*="border-[#A00028]"]:active {
-  box-shadow: none !important;
-}
-
-/* TRIAD BLUE for Submit/Send buttons - enforced with high specificity */
-button[data-testid="button-submit"],
-button[data-testid="button-send"],
-button[data-testid="button-analyze"],
-button[type="submit"] {
-  background-color: #0000FF !important;
-  color: #FFFFFF !important;
-  border-color: #0000CC !important;
-  box-shadow: none !important;
-  outline: none !important;
-}
-
-button[data-testid="button-submit"]:hover,
-button[data-testid="button-send"]:hover,
-button[data-testid="button-analyze"]:hover,
-button[type="submit"]:hover {
-  background-color: #0000CC !important;
-}
-
-button[data-testid="button-submit"]:focus,
-button[data-testid="button-submit"]:focus-visible,
-button[data-testid="button-send"]:focus,
-button[data-testid="button-send"]:focus-visible,
-button[data-testid="button-analyze"]:focus,
-button[data-testid="button-analyze"]:focus-visible,
-button[type="submit"]:focus,
-button[type="submit"]:focus-visible {
-  box-shadow: 0 0 0 2px #0000FF !important;
-  outline: none !important;
-}
-
-button[data-testid="button-submit"]:disabled,
-button[data-testid="button-send"]:disabled,
-button[data-testid="button-analyze"]:disabled,
-button[type="submit"]:disabled {
-  background-color: #4D4DFF !important;
-  color: #FFFFFF !important;
-  opacity: 0.6 !important;
-}
+        /* TRIAD BLUE for Submit/Send buttons */
+        button[data-testid="button-submit"], button[data-testid="button-send"], button[data-testid="button-analyze"], button[type="submit"] {
+          background-color: #0000FF !important;
+          color: #EEFBFF !important;
+          border-color: #09080E !important;
+          box-shadow: none !important;
+        }
+        button[data-testid="button-submit"]:hover, button[data-testid="button-send"]:hover, button[data-testid="button-analyze"]:hover, button[type="submit"]:hover {
+          background-color: #0000CC !important;
+        }
+        button[data-testid="button-submit"]:focus, button[data-testid="button-send"]:focus, button[data-testid="button-analyze"]:focus, button[type="submit"]:focus {
+          box-shadow: 0 0 0 2px #0000FF !important;
+        }

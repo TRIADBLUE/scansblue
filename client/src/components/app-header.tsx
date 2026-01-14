@@ -27,35 +27,34 @@ export function AppHeader() {
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="container max-w-6xl mx-auto px-4">
         <div className="flex h-20 items-center justify-between">
-          <Button variant="ghost" size="sm" asChild className="h-auto p-0">
-            <Link href="/">
-              <img 
-                src="/scansblue-logo.png" 
-                alt="Your Site Inspector Agent"
-                className="h-16 object-contain"
-              />
-            </Link>
-          </Button>
+          {/* Logo */}
+          <Link href="/">
+            <img
+              src="/scansblue-logo.png"
+              alt="Your Site Inspector Agent"
+              className="h-16 object-contain"
+            />
+          </Link>
 
+          {/* Navigation Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 border-[#A00028] text-[#A00028] bg-transparent hover:bg-[#A00028]/10 shadow-none"
+              <button
+                className="flex items-center gap-2 px-4 py-2 rounded-md border border-[#A00028] bg-transparent text-[#A00028] hover:bg-[#A00028]/10 focus:outline-none focus:ring-2 focus:ring-[#A00028]"
                 data-testid="button-nav-dropdown"
               >
                 <img src={currentItem.iconSrc} alt="" className="w-5 h-5" />
                 <span className="hidden sm:inline">{currentItem.label}</span>
                 <ChevronDown className="w-4 h-4" />
-              </Button>
+              </button>
             </DropdownMenuTrigger>
+
             <DropdownMenuContent align="end" className="w-56">
               {otherItems.map((item) => (
                 <DropdownMenuItem
                   key={item.path}
                   onClick={() => setLocation(item.path)}
-                  className="gap-2 cursor-pointer"
+                  className="flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-[#A00028]/10 rounded-md"
                   data-testid={`button-nav-${item.path.replace("/", "") || "home"}`}
                 >
                   <img src={item.iconSrc} alt="" className="w-5 h-5" />
