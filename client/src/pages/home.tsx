@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Globe, Search, Check, AlertTriangle, X } from "lucide-react";
+import { Loader2, Globe, Check, AlertTriangle, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import quickAnalysisIcon from "@assets/quick_analysis_icon_1768197865904.png";
@@ -169,30 +169,29 @@ export default function Home() {
               <Input
                 data-testid="input-url"
                 type="text"
-                placeholder="e.g., example.com or https://example.com"
+                placeholder="e.g., example.com"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 disabled={isLoading}
-                className="flex-1"
+                className="w-full sm:w-1/2"
               />
               <Button
                 data-testid="button-submit"
                 type="submit"
+                variant="triadBlue"
                 disabled={isLoading || !url.trim()}
+                className="w-full sm:w-1/4 whitespace-nowrap"
               >
-                {isLoading ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Search className="w-4 h-4 mr-2" />
-                )}
+                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 {isLoading ? 'Scanning...' : 'Submit'}
               </Button>
               <Button
                 data-testid="button-clear"
                 type="button"
-                variant="outline"
+                variant="redNav"
                 onClick={handleClear}
                 disabled={isLoading}
+                className="w-full sm:w-1/4 whitespace-nowrap"
               >
                 Clear
               </Button>

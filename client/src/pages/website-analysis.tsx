@@ -87,17 +87,19 @@ export default function WebsiteAnalysis() {
           <div className="flex flex-col sm:flex-row gap-3">
             <Input
               type="url"
-              placeholder="Enter website URL (e.g., example.com or https://example.com)"
+              placeholder="e.g., example.com"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleAnalyze()}
               disabled={analysisMutation.isPending}
-              className="flex-1"
+              className="sm:w-64 sm:flex-none"
               data-testid="input-website-url"
             />
             <Button
               onClick={handleAnalyze}
               disabled={analysisMutation.isPending || !url.trim()}
+              variant="triadBlue"
+              className="flex-1 whitespace-nowrap"
               data-testid="button-analyze"
             >
               {analysisMutation.isPending ? (
@@ -206,7 +208,7 @@ export default function WebsiteAnalysis() {
                         </div>
                       </div>
                       <div className="flex items-start">
-                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+                        <Button variant="ghost" size="sm" className="text-muted-foreground">
                           <CheckCircle className="w-5 h-5" />
                         </Button>
                       </div>
