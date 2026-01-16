@@ -106,31 +106,36 @@
           box-shadow: 0 0 0 2px #0000FF !important;
         }
 
-        /* Transparent icon buttons */
-        button.transparent-btn {
+        /* Transparent icon buttons - reset ALL styles */
+        button.transparent-btn,
+        button[data-transparent="true"] {
           background-color: transparent !important;
+          background: transparent !important;
+          box-shadow: none !important;
+          outline: none !important;
+          filter: none !important;
+          opacity: 1 !important;
+          mix-blend-mode: normal !important;
         }
         
-        /* Force pure blue for Send button border and icon */
-        button.transparent-btn.border-\[\#0000FF\] {
+        /* Blue transparent button */
+        button[data-color="blue"] {
           border-color: #0000FF !important;
-        }
-        button.transparent-btn.text-\[\#0000FF\] {
           color: #0000FF !important;
         }
-        button.transparent-btn.text-\[\#0000FF\] svg {
+        button[data-color="blue"] svg {
           color: #0000FF !important;
           stroke: #0000FF !important;
+          fill: none !important;
         }
         
-        /* Force pure red for other transparent buttons */
-        button.transparent-btn.border-\[\#A00028\] {
+        /* Red transparent button */
+        button[data-color="red"] {
           border-color: #A00028 !important;
-        }
-        button.transparent-btn.text-\[\#A00028\] {
           color: #A00028 !important;
         }
-        button.transparent-btn.text-\[\#A00028\] svg {
+        button[data-color="red"] svg {
           color: #A00028 !important;
           stroke: #A00028 !important;
+          fill: none !important;
         }

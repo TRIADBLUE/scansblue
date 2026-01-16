@@ -380,8 +380,10 @@ export default function CodeAuditor() {
       <div className="w-60 border-r bg-muted/30 p-4 flex flex-col overflow-y-auto">
         <button 
           onClick={createConversation} 
-          className="transparent-btn w-12 h-12 mb-4 border-2 border-[#A00028] text-[#A00028] flex items-center justify-center rounded-md" 
+          className="w-12 h-12 mb-4 border-2 flex items-center justify-center rounded-md" 
           data-testid="button-new-chat"
+          data-transparent="true"
+          data-color="red"
         >
           <Plus className="w-6 h-6" />
         </button>
@@ -552,38 +554,44 @@ export default function CodeAuditor() {
             <div className="flex gap-2">
               <button
                 type="button"
-                className="transparent-btn w-12 h-12 border-2 border-[#A00028] text-[#A00028] flex items-center justify-center rounded-md disabled:opacity-50"
+                className="w-12 h-12 border-2 flex items-center justify-center rounded-md"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading || auditMutation.isPending || isListening}
                 data-testid="button-attach"
+                data-transparent="true"
+                data-color="red"
               >
                 <Upload className="w-6 h-6" />
               </button>
               <button
                 type="button"
-                className="transparent-btn w-12 h-12 border-2 border-[#A00028] text-[#A00028] flex items-center justify-center rounded-md disabled:opacity-50"
+                className="w-12 h-12 border-2 flex items-center justify-center rounded-md"
                 onClick={toggleListening}
                 disabled={uploading || auditMutation.isPending}
                 data-testid="button-voice"
+                data-transparent="true"
+                data-color="red"
               >
                 {isListening ? <Square className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
               </button>
               <button
-                type="submit"
-                className="transparent-btn w-12 h-12 border-2 flex items-center justify-center rounded-md disabled:opacity-50"
-                style={{ 
-                  backgroundColor: 'transparent', 
-                  borderColor: '#A00028', 
-                  color: '#A00028' 
-                }}
+                type="button"
+                className="w-12 h-12 border-2 flex items-center justify-center rounded-md"
                 disabled={
                   auditMutation.isPending ||
                   uploading ||
                   (!input.trim() && attachments.length === 0)
                 }
+                onClick={(e) => {
+                  e.preventDefault();
+                  const form = e.currentTarget.closest('form');
+                  if (form) form.requestSubmit();
+                }}
                 data-testid="button-send"
+                data-transparent="true"
+                data-color="blue"
               >
-                <Send className="w-6 h-6" style={{ color: '#A00028', stroke: '#A00028' }} />
+                <Send className="w-6 h-6" />
               </button>
             </div>
           </form>
