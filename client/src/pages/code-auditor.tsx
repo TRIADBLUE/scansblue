@@ -380,12 +380,11 @@ export default function CodeAuditor() {
       <div className="w-60 border-r bg-muted/30 p-4 flex flex-col overflow-y-auto">
         <Button 
           onClick={createConversation} 
-          className="w-full mb-4 gap-2" 
+          className="w-10 h-10 mb-4 p-0" 
           variant="redNav"
-          size="sm"
+          data-testid="button-new-chat"
         >
-          <Plus className="w-4 h-4" />
-          New Chat
+          <Plus className="w-5 h-5" />
         </Button>
 
         <div className="space-y-2 flex-1">
@@ -533,73 +532,57 @@ export default function CodeAuditor() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-2">
+          <form onSubmit={handleSubmit} className="flex flex-wrap gap-2 items-end">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={handleFileSelect}
+              disabled={uploading || auditMutation.isPending}
+              className="hidden"
+              data-testid="input-file"
+            />
             <Textarea
-              placeholder="Paste text, questions, or anything you want analyzed. Ask any question..."
+              placeholder="Paste text, questions, or anything you want analyzed..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className="resize-none min-h-[100px]"
+              className="resize-none min-h-[60px] w-[70%] flex-shrink-0"
               data-testid="input-message"
               disabled={auditMutation.isPending || uploading}
             />
-            <div className="flex justify-between items-center">
-              <div className="flex gap-2">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  onChange={handleFileSelect}
-                  disabled={uploading || auditMutation.isPending}
-                  className="hidden"
-                  data-testid="input-file"
-                />
-                <Button
-                  type="button"
-                  variant="redNav"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading || auditMutation.isPending || isListening}
-                  className="gap-2"
-                  data-testid="button-attach"
-                >
-                  <Upload className="w-4 h-4" />
-                  {uploading ? "Uploading..." : "Attach"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="redNav"
-                  size="sm"
-                  onClick={toggleListening}
-                  disabled={uploading || auditMutation.isPending}
-                  className="gap-2"
-                  data-testid="button-voice"
-                >
-                  {isListening ? (
-                    <>
-                      <Square className="w-4 h-4" />
-                      Stop
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="w-4 h-4" />
-                      Voice
-                    </>
-                  )}
-                </Button>
-              </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="redNav"
+                className="w-10 h-10 p-0"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading || auditMutation.isPending || isListening}
+                data-testid="button-attach"
+              >
+                <Upload className="w-4 h-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="redNav"
+                className="w-10 h-10 p-0"
+                onClick={toggleListening}
+                disabled={uploading || auditMutation.isPending}
+                data-testid="button-voice"
+              >
+                {isListening ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </Button>
               <Button
                 type="submit"
                 variant="triadBlue"
+                className="w-10 h-10 p-0"
                 disabled={
                   auditMutation.isPending ||
                   uploading ||
                   (!input.trim() && attachments.length === 0)
                 }
-                className="gap-2 whitespace-nowrap"
                 data-testid="button-send"
               >
                 <Send className="w-4 h-4" />
-                Send
               </Button>
             </div>
           </form>
