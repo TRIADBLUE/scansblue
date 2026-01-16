@@ -533,7 +533,7 @@ export default function CodeAuditor() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-wrap gap-2 items-end">
+          <form onSubmit={handleSubmit} className="flex gap-2 items-end w-full">
             <input
               ref={fileInputRef}
               type="file"
@@ -543,57 +543,55 @@ export default function CodeAuditor() {
               className="hidden"
               data-testid="input-file"
             />
+            <button
+              type="button"
+              className="w-12 h-12 border-2 flex items-center justify-center rounded-md flex-shrink-0"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading || auditMutation.isPending || isListening}
+              data-testid="button-attach"
+              data-transparent="true"
+              data-color="red"
+            >
+              <Upload className="w-6 h-6" />
+            </button>
+            <button
+              type="button"
+              className="w-12 h-12 border-2 flex items-center justify-center rounded-md flex-shrink-0"
+              onClick={toggleListening}
+              disabled={uploading || auditMutation.isPending}
+              data-testid="button-voice"
+              data-transparent="true"
+              data-color="red"
+            >
+              {isListening ? <Square className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+            </button>
             <Textarea
               placeholder="Paste text, questions, or anything you want analyzed..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className="resize-none min-h-[60px] w-[70%] flex-shrink-0"
+              className="resize-none min-h-[60px] flex-1"
               data-testid="input-message"
               disabled={auditMutation.isPending || uploading}
             />
-            <div className="flex gap-2">
-              <button
-                type="button"
-                className="w-12 h-12 border-2 flex items-center justify-center rounded-md"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading || auditMutation.isPending || isListening}
-                data-testid="button-attach"
-                data-transparent="true"
-                data-color="red"
-              >
-                <Upload className="w-6 h-6" />
-              </button>
-              <button
-                type="button"
-                className="w-12 h-12 border-2 flex items-center justify-center rounded-md"
-                onClick={toggleListening}
-                disabled={uploading || auditMutation.isPending}
-                data-testid="button-voice"
-                data-transparent="true"
-                data-color="red"
-              >
-                {isListening ? <Square className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-              </button>
-              <button
-                type="button"
-                className="w-12 h-12 border-2 flex items-center justify-center rounded-md"
-                disabled={
-                  auditMutation.isPending ||
-                  uploading ||
-                  (!input.trim() && attachments.length === 0)
-                }
-                onClick={(e) => {
-                  e.preventDefault();
-                  const form = e.currentTarget.closest('form');
-                  if (form) form.requestSubmit();
-                }}
-                data-testid="button-send"
-                data-transparent="true"
-                data-color="blue"
-              >
-                <Send className="w-6 h-6" />
-              </button>
-            </div>
+            <button
+              type="button"
+              className="w-24 h-12 border-2 flex items-center justify-center rounded-md flex-shrink-0"
+              disabled={
+                auditMutation.isPending ||
+                uploading ||
+                (!input.trim() && attachments.length === 0)
+              }
+              onClick={(e) => {
+                e.preventDefault();
+                const form = e.currentTarget.closest('form');
+                if (form) form.requestSubmit();
+              }}
+              data-testid="button-send"
+              data-transparent="true"
+              data-color="blue"
+            >
+              <Send className="w-6 h-6" />
+            </button>
           </form>
         </div>
       </div>
