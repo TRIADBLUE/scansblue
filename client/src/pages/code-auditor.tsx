@@ -570,7 +570,8 @@ export default function CodeAuditor() {
               </button>
               <button
                 type="submit"
-                className="w-12 h-12 bg-transparent border-2 border-[#0000FF] text-[#0000FF] hover:bg-[#0000FF]/10 flex items-center justify-center rounded-md disabled:opacity-50"
+                className="w-12 h-12 border-2 border-[#0000FF] flex items-center justify-center rounded-md disabled:opacity-50"
+                style={{ backgroundColor: 'transparent', color: '#0000FF' }}
                 disabled={
                   auditMutation.isPending ||
                   uploading ||
