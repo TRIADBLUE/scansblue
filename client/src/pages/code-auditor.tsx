@@ -380,8 +380,8 @@ export default function CodeAuditor() {
       <div className="w-60 border-r bg-muted/30 p-4 flex flex-col overflow-y-auto">
         <Button 
           onClick={createConversation} 
-          className="w-10 h-10 mb-4 p-0" 
-          variant="redNav"
+          className="w-10 h-10 mb-4 p-0 bg-transparent border-2 border-[#A00028] text-[#A00028] hover:bg-[#A00028]/10 flex items-center justify-center" 
+          variant="ghost"
           data-testid="button-new-chat"
         >
           <Plus className="w-5 h-5" />
@@ -553,8 +553,8 @@ export default function CodeAuditor() {
             <div className="flex gap-2">
               <Button
                 type="button"
-                variant="redNav"
-                className="w-10 h-10 p-0"
+                variant="ghost"
+                className="w-10 h-10 p-0 bg-transparent border-2 border-[#A00028] text-[#A00028] hover:bg-[#A00028]/10 flex items-center justify-center"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading || auditMutation.isPending || isListening}
                 data-testid="button-attach"
@@ -563,8 +563,8 @@ export default function CodeAuditor() {
               </Button>
               <Button
                 type="button"
-                variant="redNav"
-                className="w-10 h-10 p-0"
+                variant="ghost"
+                className="w-10 h-10 p-0 bg-transparent border-2 border-[#A00028] text-[#A00028] hover:bg-[#A00028]/10 flex items-center justify-center"
                 onClick={toggleListening}
                 disabled={uploading || auditMutation.isPending}
                 data-testid="button-voice"
@@ -573,8 +573,8 @@ export default function CodeAuditor() {
               </Button>
               <Button
                 type="submit"
-                variant="triadBlue"
-                className="w-10 h-10 p-0"
+                variant="ghost"
+                className="w-10 h-10 p-0 bg-transparent border-2 border-[#0000FF] text-[#0000FF] hover:bg-[#0000FF]/10 flex items-center justify-center"
                 disabled={
                   auditMutation.isPending ||
                   uploading ||
