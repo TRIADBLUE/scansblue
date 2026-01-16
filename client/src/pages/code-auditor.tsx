@@ -380,7 +380,7 @@ export default function CodeAuditor() {
       <div className="w-60 border-r bg-muted/30 p-4 flex flex-col overflow-y-auto">
         <button 
           onClick={createConversation} 
-          className="w-12 h-12 mb-4 bg-transparent border-2 border-[#A00028] text-[#A00028] hover:bg-[#A00028]/10 flex items-center justify-center rounded-md" 
+          className="transparent-btn w-12 h-12 mb-4 border-2 border-[#A00028] text-[#A00028] flex items-center justify-center rounded-md" 
           data-testid="button-new-chat"
         >
           <Plus className="w-6 h-6" />
@@ -552,7 +552,7 @@ export default function CodeAuditor() {
             <div className="flex gap-2">
               <button
                 type="button"
-                className="w-12 h-12 bg-transparent border-2 border-[#A00028] text-[#A00028] hover:bg-[#A00028]/10 flex items-center justify-center rounded-md disabled:opacity-50"
+                className="transparent-btn w-12 h-12 border-2 border-[#A00028] text-[#A00028] flex items-center justify-center rounded-md disabled:opacity-50"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading || auditMutation.isPending || isListening}
                 data-testid="button-attach"
@@ -561,7 +561,7 @@ export default function CodeAuditor() {
               </button>
               <button
                 type="button"
-                className="w-12 h-12 bg-transparent border-2 border-[#A00028] text-[#A00028] hover:bg-[#A00028]/10 flex items-center justify-center rounded-md disabled:opacity-50"
+                className="transparent-btn w-12 h-12 border-2 border-[#A00028] text-[#A00028] flex items-center justify-center rounded-md disabled:opacity-50"
                 onClick={toggleListening}
                 disabled={uploading || auditMutation.isPending}
                 data-testid="button-voice"
@@ -570,8 +570,7 @@ export default function CodeAuditor() {
               </button>
               <button
                 type="submit"
-                className="w-12 h-12 border-2 border-[#0000FF] flex items-center justify-center rounded-md disabled:opacity-50"
-                style={{ backgroundColor: 'transparent', color: '#0000FF' }}
+                className="transparent-btn w-12 h-12 border-2 border-[#0000FF] text-[#0000FF] flex items-center justify-center rounded-md disabled:opacity-50"
                 disabled={
                   auditMutation.isPending ||
                   uploading ||
