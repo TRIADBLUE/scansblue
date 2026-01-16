@@ -378,14 +378,13 @@ export default function CodeAuditor() {
     <div className="flex h-[calc(100vh-64px)]">
       {/* Sidebar */}
       <div className="w-60 border-r bg-muted/30 p-4 flex flex-col overflow-y-auto">
-        <Button 
+        <button 
           onClick={createConversation} 
-          className="w-10 h-10 mb-4 p-0 bg-transparent border-2 border-[#A00028] text-[#A00028] hover:bg-[#A00028]/10 flex items-center justify-center" 
-          variant="ghost"
+          className="w-12 h-12 mb-4 bg-transparent border-2 border-[#A00028] text-[#A00028] hover:bg-[#A00028]/10 flex items-center justify-center rounded-md" 
           data-testid="button-new-chat"
         >
-          <Plus className="w-5 h-5" />
-        </Button>
+          <Plus className="w-6 h-6" />
+        </button>
 
         <div className="space-y-2 flex-1">
           {conversations.map((conv) => (
@@ -551,30 +550,27 @@ export default function CodeAuditor() {
               disabled={auditMutation.isPending || uploading}
             />
             <div className="flex gap-2">
-              <Button
+              <button
                 type="button"
-                variant="ghost"
-                className="w-10 h-10 p-0 bg-transparent border-2 border-[#A00028] text-[#A00028] hover:bg-[#A00028]/10 flex items-center justify-center"
+                className="w-12 h-12 bg-transparent border-2 border-[#A00028] text-[#A00028] hover:bg-[#A00028]/10 flex items-center justify-center rounded-md disabled:opacity-50"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading || auditMutation.isPending || isListening}
                 data-testid="button-attach"
               >
-                <Upload className="w-4 h-4" />
-              </Button>
-              <Button
+                <Upload className="w-6 h-6" />
+              </button>
+              <button
                 type="button"
-                variant="ghost"
-                className="w-10 h-10 p-0 bg-transparent border-2 border-[#A00028] text-[#A00028] hover:bg-[#A00028]/10 flex items-center justify-center"
+                className="w-12 h-12 bg-transparent border-2 border-[#A00028] text-[#A00028] hover:bg-[#A00028]/10 flex items-center justify-center rounded-md disabled:opacity-50"
                 onClick={toggleListening}
                 disabled={uploading || auditMutation.isPending}
                 data-testid="button-voice"
               >
-                {isListening ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-              </Button>
-              <Button
+                {isListening ? <Square className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+              </button>
+              <button
                 type="submit"
-                variant="ghost"
-                className="w-10 h-10 p-0 bg-transparent border-2 border-[#0000FF] text-[#0000FF] hover:bg-[#0000FF]/10 flex items-center justify-center"
+                className="w-12 h-12 bg-transparent border-2 border-[#0000FF] text-[#0000FF] hover:bg-[#0000FF]/10 flex items-center justify-center rounded-md disabled:opacity-50"
                 disabled={
                   auditMutation.isPending ||
                   uploading ||
@@ -582,8 +578,8 @@ export default function CodeAuditor() {
                 }
                 data-testid="button-send"
               >
-                <Send className="w-4 h-4" />
-              </Button>
+                <Send className="w-6 h-6" />
+              </button>
             </div>
           </form>
         </div>
