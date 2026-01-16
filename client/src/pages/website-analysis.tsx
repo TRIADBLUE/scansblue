@@ -92,14 +92,14 @@ export default function WebsiteAnalysis() {
               onChange={(e) => setUrl(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleAnalyze()}
               disabled={analysisMutation.isPending}
-              className="sm:w-64 sm:flex-none"
+              className="w-full sm:w-1/2"
               data-testid="input-website-url"
             />
             <Button
               onClick={handleAnalyze}
               disabled={analysisMutation.isPending || !url.trim()}
               variant="triadBlue"
-              className="flex-1 whitespace-nowrap"
+              className="w-full sm:w-1/4 whitespace-nowrap"
               data-testid="button-analyze"
             >
               {analysisMutation.isPending ? (
@@ -110,6 +110,16 @@ export default function WebsiteAnalysis() {
               ) : (
                 "Submit"
               )}
+            </Button>
+            <Button
+              type="button"
+              variant="redNav"
+              onClick={() => setUrl("")}
+              disabled={analysisMutation.isPending}
+              className="w-full sm:w-1/4 whitespace-nowrap"
+              data-testid="button-clear"
+            >
+              Clear
             </Button>
           </div>
         </Card>
