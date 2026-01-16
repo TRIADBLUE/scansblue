@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, AlertCircle, Loader2, Accessibility, Zap, Search, Users, Shield, FileText, Pin } from "lucide-react";
+import { CheckCircle, AlertCircle, Loader2, Accessibility, Zap, Search, Users, Shield, FileText, Pin, X } from "lucide-react";
 import type { WebsiteAnalysisResponse } from "@shared/schema";
 import comprehensiveIcon from "@assets/comprehensive_icon_1768197865904.png";
 
@@ -84,7 +84,7 @@ export default function WebsiteAnalysis() {
         </div>
 
         <Card className="p-6 mb-8 border-border">
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex gap-2 items-center w-full">
             <Input
               type="url"
               placeholder="e.g., example.com"
@@ -92,35 +92,34 @@ export default function WebsiteAnalysis() {
               onChange={(e) => setUrl(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleAnalyze()}
               disabled={analysisMutation.isPending}
-              className="w-full sm:w-1/2"
+              className="flex-1 h-12"
               data-testid="input-website-url"
             />
-            <Button
+            <button
               onClick={handleAnalyze}
               disabled={analysisMutation.isPending || !url.trim()}
-              variant="triadBlue"
-              className="w-full sm:w-1/4 whitespace-nowrap"
+              className="w-24 h-12 border-2 flex items-center justify-center rounded-md flex-shrink-0"
               data-testid="button-analyze"
+              data-transparent="true"
+              data-color="blue"
             >
               {analysisMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Analyzing
-                </>
+                <Loader2 className="w-6 h-6 animate-spin" />
               ) : (
-                "Submit"
+                <Search className="w-6 h-6" />
               )}
-            </Button>
-            <Button
+            </button>
+            <button
               type="button"
-              variant="redNav"
               onClick={() => setUrl("")}
               disabled={analysisMutation.isPending}
-              className="w-full sm:w-1/4 whitespace-nowrap"
+              className="w-12 h-12 border-2 flex items-center justify-center rounded-md flex-shrink-0"
               data-testid="button-clear"
+              data-transparent="true"
+              data-color="red"
             >
-              Clear
-            </Button>
+              <X className="w-6 h-6" />
+            </button>
           </div>
         </Card>
 

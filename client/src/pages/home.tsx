@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Globe, Check, AlertTriangle, X } from "lucide-react";
+import { Loader2, Globe, Check, AlertTriangle, X, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import quickAnalysisIcon from "@assets/quick_analysis_icon_1768197865904.png";
@@ -165,7 +165,7 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 mb-6">
+            <form onSubmit={handleSubmit} className="flex gap-2 items-center mb-6 w-full">
               <Input
                 data-testid="input-url"
                 type="text"
@@ -173,28 +173,29 @@ export default function Home() {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 disabled={isLoading}
-                className="w-full sm:w-1/2"
+                className="flex-1 h-12"
               />
-              <Button
+              <button
                 data-testid="button-submit"
                 type="submit"
-                variant="triadBlue"
                 disabled={isLoading || !url.trim()}
-                className="w-full sm:w-1/4 whitespace-nowrap"
+                className="w-24 h-12 border-2 flex items-center justify-center rounded-md flex-shrink-0"
+                data-transparent="true"
+                data-color="blue"
               >
-                {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {isLoading ? 'Scanning...' : 'Submit'}
-              </Button>
-              <Button
+                {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Search className="w-6 h-6" />}
+              </button>
+              <button
                 data-testid="button-clear"
                 type="button"
-                variant="redNav"
                 onClick={handleClear}
                 disabled={isLoading}
-                className="w-full sm:w-1/4 whitespace-nowrap"
+                className="w-12 h-12 border-2 flex items-center justify-center rounded-md flex-shrink-0"
+                data-transparent="true"
+                data-color="red"
               >
-                Clear
-              </Button>
+                <X className="w-6 h-6" />
+              </button>
             </form>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
