@@ -110,3 +110,27 @@
         button.transparent-btn {
           background-color: transparent !important;
         }
+        
+        /* Force pure blue for Send button border and icon */
+        button.transparent-btn.border-\[\#0000FF\] {
+          border-color: #0000FF !important;
+        }
+        button.transparent-btn.text-\[\#0000FF\] {
+          color: #0000FF !important;
+        }
+        button.transparent-btn.text-\[\#0000FF\] svg {
+          color: #0000FF !important;
+          stroke: #0000FF !important;
+        }
+        
+        /* Force pure red for other transparent buttons */
+        button.transparent-btn.border-\[\#A00028\] {
+          border-color: #A00028 !important;
+        }
+        button.transparent-btn.text-\[\#A00028\] {
+          color: #A00028 !important;
+        }
+        button.transparent-btn.text-\[\#A00028\] svg {
+          color: #A00028 !important;
+          stroke: #A00028 !important;
+        }
