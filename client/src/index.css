@@ -87,22 +87,22 @@
         }
 
         /* TRIAD BLUE for Submit/Send buttons - exclude transparent-btn class */
-        button[data-testid="button-submit"]:not(.transparent-btn), 
-        button[data-testid="button-analyze"]:not(.transparent-btn), 
-        button[type="submit"]:not(.transparent-btn) {
+        button[data-testid="button-submit"]:not(.transparent-btn):not([data-transparent="true"]), 
+        button[data-testid="button-analyze"]:not(.transparent-btn):not([data-transparent="true"]), 
+        button[type="submit"]:not(.transparent-btn):not([data-transparent="true"]) {
           background-color: #0000FF !important;
           color: #EEFBFF !important;
           border-color: #09080E !important;
           box-shadow: none !important;
         }
-        button[data-testid="button-submit"]:not(.transparent-btn):hover, 
-        button[data-testid="button-analyze"]:not(.transparent-btn):hover, 
-        button[type="submit"]:not(.transparent-btn):hover {
+        button[data-testid="button-submit"]:not(.transparent-btn):not([data-transparent="true"]):hover, 
+        button[data-testid="button-analyze"]:not(.transparent-btn):not([data-transparent="true"]):hover, 
+        button[type="submit"]:not(.transparent-btn):not([data-transparent="true"]):hover {
           background-color: #0000CC !important;
         }
-        button[data-testid="button-submit"]:not(.transparent-btn):focus, 
-        button[data-testid="button-analyze"]:not(.transparent-btn):focus, 
-        button[type="submit"]:not(.transparent-btn):focus {
+        button[data-testid="button-submit"]:not(.transparent-btn):not([data-transparent="true"]):focus, 
+        button[data-testid="button-analyze"]:not(.transparent-btn):not([data-transparent="true"]):focus, 
+        button[type="submit"]:not(.transparent-btn):not([data-transparent="true"]):focus {
           box-shadow: 0 0 0 2px #0000FF !important;
         }
 
