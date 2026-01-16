@@ -573,8 +573,8 @@ export default function CodeAuditor() {
                 className="transparent-btn w-12 h-12 border-2 flex items-center justify-center rounded-md disabled:opacity-50"
                 style={{ 
                   backgroundColor: 'transparent', 
-                  borderColor: '#0000FF', 
-                  color: '#0000FF' 
+                  borderColor: '#A00028', 
+                  color: '#A00028' 
                 }}
                 disabled={
                   auditMutation.isPending ||
@@ -583,7 +583,7 @@ export default function CodeAuditor() {
                 }
                 data-testid="button-send"
               >
-                <Send className="w-6 h-6" style={{ color: '#0000FF', stroke: '#0000FF' }} />
+                <Send className="w-6 h-6" style={{ color: '#A00028', stroke: '#A00028' }} />
               </button>
             </div>
           </form>
