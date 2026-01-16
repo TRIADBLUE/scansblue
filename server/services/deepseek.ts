@@ -1,4 +1,5 @@
 import pRetry from "p-retry";
+import { getCodeAuditorPrompt } from "./promptLoader";
 
 const DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions";
 const API_KEY = process.env.DEEPSEEK_API_KEY;
@@ -6,6 +7,8 @@ const API_KEY = process.env.DEEPSEEK_API_KEY;
 if (!API_KEY) {
   console.warn("DEEPSEEK_API_KEY not set. Code auditing will be unavailable.");
 }
+
+const DEFAULT_SYSTEM_PROMPT = `You are an expert auditor and analyst. You provide thorough, independent reviews and evaluations of any topic, system, configuration, or question presented to you. You are critical and honest about what exists and what doesn't. You verify claims independently and identify gaps between what someone claims vs. what actually makes sense. You analyze natural language questions, system configurations, architectures, and scenarios with deep insight. You're skilled at cutting through to the real issues.`;
 
 export interface CodeAuditRequest {
   code: string;
@@ -30,6 +33,8 @@ export async function auditCode(request: CodeAuditRequest): Promise<CodeAuditRes
     ? `Analyze and answer this question thoroughly: ${question}\n\nContext:\n${code}\n\nProvide a detailed analysis with specific insights and actionable recommendations.`
     : `Perform a comprehensive analysis of the following text. Identify any issues, gaps, inconsistencies, or areas for improvement.\n\nText:\n${code}\n\nProvide:\n1. Summary of what's being described\n2. Identified issues or problems\n3. Missing components or gaps\n4. Suggestions for improvement\n5. Critical considerations if applicable`;
 
+  const systemPrompt = getCodeAuditorPrompt() || DEFAULT_SYSTEM_PROMPT;
+
   return pRetry(
     async () => {
       const response = await fetch(DEEPSEEK_API_URL, {
@@ -43,8 +48,7 @@ export async function auditCode(request: CodeAuditRequest): Promise<CodeAuditRes
           messages: [
             {
               role: "system",
-              content:
-                "You are an expert auditor and analyst. You provide thorough, independent reviews and evaluations of any topic, system, configuration, or question presented to you. You are critical and honest about what exists and what doesn't. You verify claims independently and identify gaps between what someone claims vs. what actually makes sense. You analyze natural language questions, system configurations, architectures, and scenarios with deep insight. You're skilled at cutting through to the real issues.",
+              content: systemPrompt,
             },
             {
               role: "user",
@@ -52,7 +56,7 @@ export async function auditCode(request: CodeAuditRequest): Promise<CodeAuditRes
             },
           ],
           temperature: 0.7,
-          max_tokens: 2000,
+          max_tokens: 4000,
         }),
       });
 
