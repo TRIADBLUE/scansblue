@@ -33,7 +33,12 @@ export async function auditCode(request: CodeAuditRequest): Promise<CodeAuditRes
     ? `Analyze and answer this question thoroughly: ${question}\n\nContext:\n${code}\n\nProvide a detailed analysis with specific insights and actionable recommendations.`
     : `Perform a comprehensive analysis of the following text. Identify any issues, gaps, inconsistencies, or areas for improvement.\n\nText:\n${code}\n\nProvide:\n1. Summary of what's being described\n2. Identified issues or problems\n3. Missing components or gaps\n4. Suggestions for improvement\n5. Critical considerations if applicable`;
 
-  const systemPrompt = getCodeAuditorPrompt() || DEFAULT_SYSTEM_PROMPT;
+  const loadedPrompt = getCodeAuditorPrompt();
+  const systemPrompt = loadedPrompt || DEFAULT_SYSTEM_PROMPT;
+  
+  if (!loadedPrompt) {
+    console.warn("[DeepSeek] Using fallback system prompt - code-auditor prompt not loaded");
+  }
 
   return pRetry(
     async () => {
