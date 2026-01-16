@@ -570,7 +570,12 @@ export default function CodeAuditor() {
               </button>
               <button
                 type="submit"
-                className="transparent-btn w-12 h-12 border-2 border-[#0000FF] text-[#0000FF] flex items-center justify-center rounded-md disabled:opacity-50"
+                className="transparent-btn w-12 h-12 border-2 flex items-center justify-center rounded-md disabled:opacity-50"
+                style={{ 
+                  backgroundColor: 'transparent', 
+                  borderColor: '#0000FF', 
+                  color: '#0000FF' 
+                }}
                 disabled={
                   auditMutation.isPending ||
                   uploading ||
@@ -578,7 +583,7 @@ export default function CodeAuditor() {
                 }
                 data-testid="button-send"
               >
-                <Send className="w-6 h-6" />
+                <Send className="w-6 h-6" style={{ color: '#0000FF', stroke: '#0000FF' }} />
               </button>
             </div>
           </form>
