@@ -1,0 +1,85 @@
+BUILD REQUEST: Site Inspector Agent
+Project Goal
+Build a standalone API-based agent service that inspects live websites and provides conversational analysis. This agent will integrate with ConsoleBlue's Agent Chat system to answer questions about website structure, elements, and configuration.
+
+What This Agent Should Do
+Answer natural language questions like:
+
+"How many buttons are on swipesblue.com production?"
+"Where does my logo appear on businessblueprint.com and what sizes?"
+"Is the favicon set up properly on hostsblue.com?"
+"Compare the navigation between dev.listit.com and listit.com"
+Capabilities needed:
+
+Count interactive elements (buttons, links, forms)
+Find and measure logos/images
+Validate favicon setup
+Analyze navigation structure
+Compare dev vs production environments
+Handle any valid website URL
+Technical Requirements
+Stack:
+
+Node.js with Express (TypeScript)
+Playwright for browser automation
+OpenAI API for natural language question parsing
+CORS enabled for cross-origin requests
+Main API Endpoint:
+
+POST /api/agent
+Body: { "content": "user question here" }
+Response: { "content": "analysis results here" }
+
+Environment Variables Needed:
+
+OPENAI_API_KEY - For parsing natural language questions
+PORT - Server port (default 3000)
+Build Tasks
+Initialize project with Node.js/TypeScript and Express
+Install dependencies: express, playwright, openai, cors, dotenv, typescript, @types/express, @types/node
+Create basic Express server with POST /api/agent endpoint
+Set up Playwright browser automation with error handling and timeouts
+Build analysis functions:
+countButtons(url) - Count all buttons and clickable elements
+findLogos(url) - Locate images with "logo" in src/alt/class, return sizes
+checkFavicon(url) - Verify favicon link exists and loads successfully
+analyzeNavigation(url) - Extract nav structure and count menu items
+Build compareEnvironments(devUrl, prodUrl, analysisType) - Run same analysis on two URLs and return comparison
+Integrate OpenAI API to parse user questions and route to appropriate analysis function
+Format responses conversationally with specific numbers and details
+Add CORS configuration to allow requests from external domains
+Test with sample questions:
+"How many buttons on https://example.com?"
+"Find logos on https://example.com"
+"Check favicon on https://example.com"
+"Compare https://dev.example.com and https://example.com navigation"
+Deploy and provide the public URL
+Implementation Guidance
+Playwright Usage:
+
+Launch headless browser for each request
+Navigate to target URL with timeout handling
+Use page.$$() for counting elements
+Use page.evaluate() for extracting attributes and measurements
+Handle errors gracefully (site down, timeout, etc.)
+OpenAI Integration:
+
+Parse user question to extract: what to analyze, which URL(s), comparison intent
+Use GPT-4 or GPT-3.5-turbo for question understanding
+System prompt: "You are a website analysis assistant. Parse user questions about websites and determine what to analyze."
+Response Format:
+
+Conversational tone
+Include specific counts and measurements
+Use bullet points for lists
+Example: "I found 12 buttons on swipesblue.com: 4 in the header navigation, 3 CTA buttons in the hero section, 2 in the features area, and 3 in the footer."
+Error Handling:
+
+Invalid URLs: "I couldn't access that URL. Please check that it's valid and publicly accessible."
+Timeout: "The site took too long to respond. It might be down or blocking automated access."
+No elements found: "I didn't find any [buttons/logos/etc] on that page."
+After Building
+Once deployed, provide the public URL (e.g., https://siteinspectoragent.username.repl.co/api/agent) so it can be connected to ConsoleBlue's Agent Chat system.
+
+Questions?
+Ask if anything is unclear. Focus on making the agent conversational, accurate, and reliable for production use.
