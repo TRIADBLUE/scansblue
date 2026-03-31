@@ -1,6 +1,6 @@
 import { eq, and, gt, sql, desc } from "drizzle-orm";
 import { db } from "./db";
-import { analysisCache, websiteAnalysis, conversations, conversationMessages, type InsertAnalysisCache, type AnalysisCache, type InsertWebsiteAnalysis, type WebsiteAnalysis, type InsertConversation, type Conversation, type InsertConversationMessage, type ConversationMessage } from "@shared/schema";
+import { analysisCache, websiteAnalysis, conversations, conversationMessages, scansblue_purchases, type InsertAnalysisCache, type AnalysisCache, type InsertWebsiteAnalysis, type WebsiteAnalysis, type InsertConversation, type Conversation, type InsertConversationMessage, type ConversationMessage, type InsertPurchase, type Purchase } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -15,6 +15,13 @@ export interface IStorage {
   deleteConversation(id: string): Promise<void>;
   addMessageToConversation(data: InsertConversationMessage): Promise<ConversationMessage>;
   getConversationMessages(conversationId: string): Promise<ConversationMessage[]>;
+  createPurchase(data: InsertPurchase): Promise<Purchase>;
+  getPurchase(id: string): Promise<Purchase | undefined>;
+  getPurchaseBySessionId(sessionId: string): Promise<Purchase | undefined>;
+  getPurchaseByAssessmentId(assessmentId: string): Promise<Purchase | undefined>;
+  updatePurchaseSessionId(id: string, sessionId: string): Promise<Purchase | undefined>;
+  updatePurchasePaymentStatus(id: string, status: string, paidAt?: Date): Promise<Purchase | undefined>;
+  updatePurchaseReportStatus(id: string, status: string, reportData?: any, deliveredAt?: Date): Promise<Purchase | undefined>;
 }
 
 export class DbStorage implements IStorage {
@@ -187,6 +194,90 @@ export class DbStorage implements IStorage {
     } catch (error) {
       console.warn("Failed to fetch messages:", error);
       return [];
+    }
+  }
+
+  async createPurchase(data: InsertPurchase): Promise<Purchase> {
+    if (!db) {
+      return { ...data, id: randomUUID(), createdAt: new Date(), updatedAt: new Date(), paidAt: null, deliveredAt: null, reportData: null, sessionId: data.sessionId ?? null, amountCents: data.amountCents ?? 1000, paymentStatus: data.paymentStatus ?? "pending", reportStatus: data.reportStatus ?? "pending" } as Purchase;
+    }
+    try {
+      const result = await db.insert(scansblue_purchases).values(data).returning();
+      return result[0];
+    } catch (error) {
+      console.warn("Failed to create purchase:", error);
+      return { ...data, id: randomUUID(), createdAt: new Date(), updatedAt: new Date(), paidAt: null, deliveredAt: null, reportData: null, sessionId: data.sessionId ?? null, amountCents: data.amountCents ?? 1000, paymentStatus: data.paymentStatus ?? "pending", reportStatus: data.reportStatus ?? "pending" } as Purchase;
+    }
+  }
+
+  async getPurchase(id: string): Promise<Purchase | undefined> {
+    if (!db) return undefined;
+    try {
+      const result = await db.select().from(scansblue_purchases).where(eq(scansblue_purchases.id, id)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.warn("Failed to get purchase:", error);
+      return undefined;
+    }
+  }
+
+  async getPurchaseBySessionId(sessionId: string): Promise<Purchase | undefined> {
+    if (!db) return undefined;
+    try {
+      const result = await db.select().from(scansblue_purchases).where(eq(scansblue_purchases.sessionId, sessionId)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.warn("Failed to get purchase by session:", error);
+      return undefined;
+    }
+  }
+
+  async getPurchaseByAssessmentId(assessmentId: string): Promise<Purchase | undefined> {
+    if (!db) return undefined;
+    try {
+      const result = await db.select().from(scansblue_purchases).where(eq(scansblue_purchases.assessmentId, assessmentId)).limit(1);
+      return result[0];
+    } catch (error) {
+      console.warn("Failed to get purchase by assessment:", error);
+      return undefined;
+    }
+  }
+
+  async updatePurchaseSessionId(id: string, sessionId: string): Promise<Purchase | undefined> {
+    if (!db) return undefined;
+    try {
+      const result = await db.update(scansblue_purchases).set({ sessionId, updatedAt: new Date() }).where(eq(scansblue_purchases.id, id)).returning();
+      return result[0];
+    } catch (error) {
+      console.warn("Failed to update purchase session ID:", error);
+      return undefined;
+    }
+  }
+
+  async updatePurchasePaymentStatus(id: string, status: string, paidAt?: Date): Promise<Purchase | undefined> {
+    if (!db) return undefined;
+    try {
+      const updates: any = { paymentStatus: status, updatedAt: new Date() };
+      if (paidAt) updates.paidAt = paidAt;
+      const result = await db.update(scansblue_purchases).set(updates).where(eq(scansblue_purchases.id, id)).returning();
+      return result[0];
+    } catch (error) {
+      console.warn("Failed to update purchase payment status:", error);
+      return undefined;
+    }
+  }
+
+  async updatePurchaseReportStatus(id: string, status: string, reportData?: any, deliveredAt?: Date): Promise<Purchase | undefined> {
+    if (!db) return undefined;
+    try {
+      const updates: any = { reportStatus: status, updatedAt: new Date() };
+      if (reportData) updates.reportData = reportData;
+      if (deliveredAt) updates.deliveredAt = deliveredAt;
+      const result = await db.update(scansblue_purchases).set(updates).where(eq(scansblue_purchases.id, id)).returning();
+      return result[0];
+    } catch (error) {
+      console.warn("Failed to update purchase report status:", error);
+      return undefined;
     }
   }
 }

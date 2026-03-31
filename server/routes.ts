@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import cors from "cors";
-import { agentRequestSchema, batchAgentRequestSchema, auditRequestSchema } from "@shared/schema";
+import { agentRequestSchema, batchAgentRequestSchema, auditRequestSchema, checkoutRequestSchema } from "@shared/schema";
 import { parseUserQuestion } from "./services/openai";
 import { executeAnalysis } from "./services/analysisExecutor";
 import { sendWebhook } from "./services/webhook";
@@ -609,6 +609,269 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Failed to delete conversation:", error);
       res.status(500).json({ error: "Failed to delete conversation" });
+    }
+  });
+
+  // ─── Payment Flow (swipesblue.com) ───────────────────────────────────
+
+  const SWIPESBLUE_API = "https://swipesblue.com/api/v1";
+
+  // POST /api/checkout — create a checkout session for a $10 Full Report
+  app.post("/api/checkout", async (req, res) => {
+    try {
+      const validation = checkoutRequestSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: "Invalid request. Provide assessmentId, email, and websiteUrl.",
+        });
+      }
+
+      const { assessmentId, email, websiteUrl } = validation.data;
+
+      // Create the purchase record
+      const purchase = await storage.createPurchase({
+        assessmentId,
+        email,
+        websiteUrl,
+        amountCents: 1000,
+        paymentStatus: "pending",
+        reportStatus: "pending",
+      });
+
+      // Call swipesblue.com to create a checkout session
+      const swipesResponse = await fetch(`${SWIPESBLUE_API}/checkout/sessions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.SWIPESBLUE_API_KEY}`,
+        },
+        body: JSON.stringify({
+          amount: 1000,
+          currency: "usd",
+          description: `Full Website Report — ${websiteUrl}`,
+          customerEmail: email,
+          metadata: {
+            purchaseId: purchase.id,
+            assessmentId,
+            websiteUrl,
+            platform: "scansblue.com",
+          },
+          successUrl: `${req.protocol}://${req.get("host")}/success?session_id={SESSION_ID}`,
+          cancelUrl: `${req.protocol}://${req.get("host")}/purchase?canceled=true`,
+          webhookUrl: `${req.protocol}://${req.get("host")}/api/payment-webhook`,
+        }),
+      });
+
+      if (!swipesResponse.ok) {
+        const errText = await swipesResponse.text();
+        console.error("swipesblue.com checkout error:", errText);
+        return res.status(502).json({
+          error: "Payment service unavailable. Please try again.",
+        });
+      }
+
+      const session = await swipesResponse.json() as { id: string; url: string };
+
+      // Store the session ID on the purchase record
+      if (session.id) {
+        await storage.updatePurchaseSessionId(purchase.id, session.id);
+      }
+
+      res.json({
+        checkoutUrl: session.url,
+        sessionId: session.id,
+        purchaseId: purchase.id,
+      });
+
+    } catch (error: any) {
+      console.error("Checkout error:", error);
+      res.status(500).json({
+        error: `Checkout failed: ${error.message || "Unknown error"}`,
+      });
+    }
+  });
+
+  // GET /api/verify-session — verify that a payment completed
+  app.get("/api/verify-session", async (req, res) => {
+    try {
+      const sessionId = req.query.session_id as string;
+      if (!sessionId) {
+        return res.status(400).json({ error: "session_id is required" });
+      }
+
+      // Call swipesblue.com to check session status
+      const swipesResponse = await fetch(`${SWIPESBLUE_API}/checkout/sessions/${sessionId}`, {
+        headers: {
+          "Authorization": `Bearer ${process.env.SWIPESBLUE_API_KEY}`,
+        },
+      });
+
+      if (!swipesResponse.ok) {
+        return res.status(502).json({ error: "Could not verify payment status" });
+      }
+
+      const session = await swipesResponse.json() as {
+        id: string;
+        paymentStatus: string;
+        metadata?: { purchaseId?: string; assessmentId?: string };
+        customerEmail?: string;
+      };
+
+      const paid = session.paymentStatus === "paid" || session.paymentStatus === "complete";
+
+      // If paid, update our purchase record
+      if (paid && session.metadata?.purchaseId) {
+        await storage.updatePurchasePaymentStatus(
+          session.metadata.purchaseId,
+          "paid",
+          new Date()
+        );
+      }
+
+      // Look up purchase for assessment ID
+      const purchase = session.metadata?.purchaseId
+        ? await storage.getPurchase(session.metadata.purchaseId)
+        : await storage.getPurchaseBySessionId(sessionId);
+
+      res.json({
+        paid,
+        assessmentId: purchase?.assessmentId || session.metadata?.assessmentId,
+        customerEmail: purchase?.email || session.customerEmail,
+        purchaseId: purchase?.id,
+      });
+
+    } catch (error: any) {
+      console.error("Verify session error:", error);
+      res.status(500).json({
+        error: `Verification failed: ${error.message || "Unknown error"}`,
+      });
+    }
+  });
+
+  // POST /api/payment-webhook — receives payment completion callbacks from swipesblue.com
+  app.post("/api/payment-webhook", async (req, res) => {
+    try {
+      const { event, data } = req.body;
+
+      if (event === "payment.completed" || event === "checkout.session.completed") {
+        const purchaseId = data?.metadata?.purchaseId;
+        const assessmentId = data?.metadata?.assessmentId;
+        const websiteUrl = data?.metadata?.websiteUrl;
+
+        if (purchaseId) {
+          // Mark purchase as paid
+          await storage.updatePurchasePaymentStatus(purchaseId, "paid", new Date());
+
+          // Trigger full report scan
+          if (websiteUrl) {
+            await storage.updatePurchaseReportStatus(purchaseId, "processing");
+
+            // Kick off the full website analysis asynchronously
+            (async () => {
+              try {
+                const { pages } = await crawlWebsite(websiteUrl, 50);
+                const { tasks, summary } = generateTasks(pages);
+
+                const reportData = {
+                  url: websiteUrl,
+                  pagesAnalyzed: pages.map(p => p.url),
+                  totalPages: pages.length,
+                  tasks,
+                  summary,
+                  generatedAt: new Date().toISOString(),
+                };
+
+                // Store report and mark as complete
+                await storage.updatePurchaseReportStatus(
+                  purchaseId,
+                  "completed",
+                  reportData,
+                  new Date()
+                );
+
+                console.log(`[Payment Webhook] Report generated for purchase ${purchaseId}`);
+              } catch (err: any) {
+                console.error(`[Payment Webhook] Report generation failed for purchase ${purchaseId}:`, err);
+                await storage.updatePurchaseReportStatus(purchaseId, "failed");
+              }
+            })();
+          }
+        }
+      }
+
+      // Acknowledge the webhook immediately
+      res.json({ received: true });
+
+    } catch (error: any) {
+      console.error("Payment webhook error:", error);
+      res.status(500).json({ error: "Webhook processing failed" });
+    }
+  });
+
+  // POST /api/report-webhook — receives callbacks when reports finish processing
+  app.post("/api/report-webhook", async (req, res) => {
+    try {
+      const { assessmentId, reportData } = req.body;
+
+      if (!assessmentId) {
+        return res.status(400).json({ error: "assessmentId is required" });
+      }
+
+      // Look up the purchase by assessment ID
+      const purchase = await storage.getPurchaseByAssessmentId(assessmentId);
+      if (!purchase) {
+        return res.status(404).json({ error: "Purchase not found for this assessment" });
+      }
+
+      // Update report status
+      await storage.updatePurchaseReportStatus(
+        purchase.id,
+        "completed",
+        reportData,
+        new Date()
+      );
+
+      // In production, this is where you'd send the report email to purchase.email
+      // For now, log the delivery target
+      console.log(`[Report Webhook] Report ready for ${purchase.email} (assessment: ${assessmentId})`);
+
+      res.json({
+        received: true,
+        purchaseId: purchase.id,
+        customerEmail: purchase.email,
+      });
+
+    } catch (error: any) {
+      console.error("Report webhook error:", error);
+      res.status(500).json({ error: "Report webhook processing failed" });
+    }
+  });
+
+  // GET /api/purchase-status — check status of a purchase by ID
+  app.get("/api/purchase-status", async (req, res) => {
+    try {
+      const purchaseId = req.query.id as string;
+      if (!purchaseId) {
+        return res.status(400).json({ error: "Purchase ID is required" });
+      }
+
+      const purchase = await storage.getPurchase(purchaseId);
+      if (!purchase) {
+        return res.status(404).json({ error: "Purchase not found" });
+      }
+
+      res.json({
+        id: purchase.id,
+        websiteUrl: purchase.websiteUrl,
+        paymentStatus: purchase.paymentStatus,
+        reportStatus: purchase.reportStatus,
+        paidAt: purchase.paidAt,
+        deliveredAt: purchase.deliveredAt,
+      });
+
+    } catch (error: any) {
+      console.error("Purchase status error:", error);
+      res.status(500).json({ error: "Failed to get purchase status" });
     }
   });
 

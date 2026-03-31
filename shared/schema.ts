@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { pgTable, varchar, text, timestamp, jsonb, serial, uuid } from "drizzle-orm/pg-core";
+import { pgTable, varchar, text, timestamp, jsonb, serial, uuid, integer, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 
 // Database schema for chat conversations
@@ -54,6 +54,36 @@ export const websiteAnalysis = pgTable("website_analysis", {
 export const insertWebsiteAnalysisSchema = createInsertSchema(websiteAnalysis).omit({ id: true, createdAt: true });
 export type InsertWebsiteAnalysis = z.infer<typeof insertWebsiteAnalysisSchema>;
 export type WebsiteAnalysis = typeof websiteAnalysis.$inferSelect;
+
+// Database schema for tracking report purchases
+export const scansblue_purchases = pgTable("scansblue_purchases", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  assessmentId: varchar("assessment_id").notNull(),
+  email: varchar("email").notNull(),
+  websiteUrl: varchar("website_url").notNull(),
+  sessionId: varchar("session_id"),
+  amountCents: integer("amount_cents").notNull().default(1000),
+  paymentStatus: varchar("payment_status").notNull().default("pending"),
+  reportStatus: varchar("report_status").notNull().default("pending"),
+  reportData: jsonb("report_data"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  paidAt: timestamp("paid_at"),
+  deliveredAt: timestamp("delivered_at"),
+});
+
+export const insertPurchaseSchema = createInsertSchema(scansblue_purchases).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertPurchase = z.infer<typeof insertPurchaseSchema>;
+export type Purchase = typeof scansblue_purchases.$inferSelect;
+
+// Checkout request schema
+export const checkoutRequestSchema = z.object({
+  assessmentId: z.string().min(1, "Assessment ID is required"),
+  email: z.string().email("Valid email is required"),
+  websiteUrl: z.string().min(1, "Website URL is required"),
+});
+
+export type CheckoutRequest = z.infer<typeof checkoutRequestSchema>;
 
 // API request schema for the agent endpoint
 export const agentRequestSchema = z.object({
