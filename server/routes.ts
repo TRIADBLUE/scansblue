@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import crypto from "crypto";
 import cors from "cors";
 import { agentRequestSchema, batchAgentRequestSchema, auditRequestSchema, checkoutRequestSchema } from "@shared/schema";
 import { parseUserQuestion } from "./services/openai";
@@ -751,6 +752,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // POST /api/payment-webhook — receives payment completion callbacks from swipesblue.com
   app.post("/api/payment-webhook", async (req, res) => {
     try {
+      // Verify webhook signature from swipesblue.com
+      const webhookSecret = process.env.SWIPESBLUE_WEBHOOK_SECRET;
+      if (webhookSecret) {
+        const signature = req.headers["x-swipesblue-signature"] || req.headers["x-webhook-signature"];
+        if (!signature) {
+          console.warn("[Payment Webhook] Missing signature header");
+          return res.status(401).json({ error: "Missing webhook signature" });
+        }
+
+        const expectedSignature = crypto
+          .createHmac("sha256", webhookSecret)
+          .update(JSON.stringify(req.body))
+          .digest("hex");
+
+        const sigString = Array.isArray(signature) ? signature[0] : signature;
+        if (!crypto.timingSafeEqual(Buffer.from(sigString), Buffer.from(expectedSignature))) {
+          console.warn("[Payment Webhook] Invalid signature");
+          return res.status(401).json({ error: "Invalid webhook signature" });
+        }
+      }
+
       const { event, data } = req.body;
 
       if (event === "payment.completed" || event === "checkout.session.completed") {
