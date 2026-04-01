@@ -1,34 +1,68 @@
-# Site Inspector Agent
+# ScansBlue — Website Assessment Engine
 
-AI-powered website analysis service that answers natural language questions about live websites using Playwright browser automation and OpenAI.
+AI-powered website analysis and diagnostic service. Part of the TRIADBLUE ecosystem. Powers the Digital IQ assessment for businessblueprint.io.
+
+ScansBlue scans websites for technical health, SEO issues, marketing tool presence, security vulnerabilities, accessibility compliance, and more — then generates prioritized, actionable reports written for small business owners who need plain-language guidance.
 
 ## Features
 
-- **Button Analysis**: Count all interactive elements (buttons, links, forms) on any webpage
-- **Logo Detection**: Find and measure logos with detailed size and location information
-- **Favicon Validation**: Verify favicon setup and check if it loads successfully
-- **Navigation Analysis**: Extract and analyze navigation structure and menu items
-- **Environment Comparison**: Compare dev vs production environments side-by-side
+- **Comprehensive Site Analysis**: Full website crawl with prioritized task lists across 8 diagnostic categories
+- **Quick Analysis**: Fast, category-specific checks (buttons, logos, favicons, navigation, accessibility, forms, images, headings, marketing stack)
+- **Marketing Stack Detection**: Identifies email platforms, chat widgets, CRM tracking, automation tools, analytics, and SMS marketing
+- **Code Auditing**: Analyze code, configurations, and system descriptions with security-first feedback
+- **Business Impact Framing**: Every finding is explained in terms of customers, revenue, and visibility
+- **Digital IQ Integration**: Feeds scan results into the businessblueprint.io Digital IQ scoring model (0-140)
 
-## API Endpoint
+## Analysis Categories
+
+1. **Website & Technical** — SSL, speed, mobile, SEO, accessibility
+2. **Directory & Listings** — Google, Yelp, Facebook, NAP consistency
+3. **Reviews & Reputation** — Review count, ratings, response rates
+4. **Social Media Presence** — Platform presence, posting activity
+5. **Email & Marketing** — Email capture, campaign tools, list building
+6. **Customer Response** — Chat widgets, contact forms, response time
+7. **Content & Blog** — Blog presence, posting frequency, freshness
+8. **CRM & Automation** — CRM tracking, marketing automation tools
+
+## API Endpoints
 
 ### POST /api/agent
 
-Ask natural language questions about websites.
+Ask natural language questions about websites. Uses DeepSeek AI with the Code Auditor system prompt.
 
 **Request:**
 ```json
 {
-  "content": "How many buttons are on example.com?"
+  "content": "Analyze the marketing stack on example.com"
 }
 ```
 
 **Response:**
 ```json
 {
-  "content": "I found 15 buttons on example.com:\n\n• 5 in the header\n• 8 in the main content\n• 2 in the footer"
+  "content": "MARKETING STACK ANALYSIS\n\nEmail Marketing: Mailchimp detected\nLive Chat: Not detected\n..."
 }
 ```
+
+### POST /api/businessblueprint/fast-check
+
+Run a fast check scan for the businessblueprint.io assessment pipeline. Returns SSL, performance, mobile, and critical issue data.
+
+**Request:**
+```json
+{
+  "url": "https://example.com",
+  "checks": ["comprehensive"]
+}
+```
+
+### POST /api/businessblueprint/full-report
+
+Queue a comprehensive full-site crawl and analysis report.
+
+### POST /api/businessblueprint/auditor
+
+Interactive auditor chat — ask follow-up questions about a business's website.
 
 ### GET /api/health
 
@@ -43,26 +77,19 @@ Check if browser automation is working correctly.
 }
 ```
 
-## Example Questions
-
-- "How many buttons are on google.com?"
-- "Find logos on github.com"
-- "Check favicon on replit.com"
-- "Analyze navigation on stripe.com"
-- "Compare dev.example.com and example.com navigation"
-
 ## Technical Stack
 
 - **Backend**: Express.js with TypeScript
 - **Browser Automation**: Playwright (Chromium)
-- **AI/NLP**: OpenAI (via Replit AI Integrations)
-- **Frontend**: React with Tailwind CSS (testing UI)
+- **AI**: DeepSeek API (code auditing, comprehensive analysis, quick analysis)
+- **Frontend**: React with Tailwind CSS
+- **Deployment**: Replit
 
 ## System Requirements
 
 ### Production Deployment
 
-This service requires Chromium browser and system dependencies to be installed on the host system:
+This service requires Chromium browser and system dependencies:
 
 - Chromium browser
 - libglib2.0, libnspr4, libnss3
@@ -73,15 +100,13 @@ This service requires Chromium browser and system dependencies to be installed o
 
 ### Replit Deployment
 
-When deploying to Replit's Autoscale deployment:
-
 1. The production infrastructure includes necessary browser dependencies
 2. Test the `/api/health` endpoint after deployment to verify Playwright is working
 3. CORS is pre-configured to allow cross-origin requests
 
 ### Alternative Deployment Platforms
 
-For deployment to Docker, AWS, or other platforms:
+For Docker, AWS, or other platforms:
 
 1. Use a Playwright-compatible base image (e.g., `mcr.microsoft.com/playwright:v1.40.0`)
 2. Or install dependencies: `npx playwright install-deps chromium`
@@ -89,11 +114,9 @@ For deployment to Docker, AWS, or other platforms:
 
 ## Environment Variables
 
-The following environment variables are automatically configured when using Replit AI Integrations:
-
-- `AI_INTEGRATIONS_OPENAI_BASE_URL` - OpenAI API base URL (auto-configured)
-- `AI_INTEGRATIONS_OPENAI_API_KEY` - OpenAI API key (auto-configured)
-- `PORT` - Server port (default: 5000)
+- `DEEPSEEK_API_KEY` — DeepSeek API key for AI analysis
+- `SCANSBLUE_API_KEY` — API key for businessblueprint.io integration
+- `PORT` — Server port (default: 5000)
 
 ## Development
 
@@ -113,34 +136,19 @@ npm start
 
 ## CORS Configuration
 
-CORS is enabled by default to allow the API to be consumed by external applications like ConsoleBlue's Agent Chat system.
+CORS is enabled by default to allow the API to be consumed by businessblueprint.io and Console.Blue.
 
-## Error Handling
+## TRIADBLUE Ecosystem
 
-The service provides helpful error messages for common issues:
+ScansBlue is part of the TRIADBLUE platform ecosystem:
 
-- **Invalid URL**: "I couldn't find a valid URL in your question..."
-- **Timeout**: "The site took too long to respond..."
-- **Inaccessible**: "I couldn't access that URL. Please check that it's valid..."
-- **Browser Launch Failure**: "Failed to launch browser. This may be due to missing system dependencies..."
-
-## Response Format
-
-All responses are conversational and include:
-- Specific counts and measurements
-- Location details (header, footer, navigation, etc.)
-- Clear breakdowns for easy understanding
-- Actionable error messages when issues occur
-
-## Integration with ConsoleBlue Agent Chat
-
-Once deployed, provide the public URL to integrate with ConsoleBlue's Agent Chat system:
-
-```
-POST https://your-replit-url.repl.co/api/agent
-```
-
-The conversational responses are optimized for display in chat interfaces.
+- **businessblueprint.io** — Business growth platform (primary consumer)
+- **hostsblue.com** — Domains, hosting, email, website builder
+- **swipesblue.com** — Payment processing
+- **scansblue.com** — Website auditing and scanning (this service)
+- **Console.Blue** — Internal operations interface
+- **BUILDERBLUE2.COM** — AI-powered vibe coding platform
+- **TRIADBLUE.COM** — Parent company
 
 ## License
 
