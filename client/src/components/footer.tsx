@@ -13,7 +13,7 @@ export function Footer() {
           {/* Column 1 — Ecosystem (spans 2 cols) */}
           <div className="md:col-span-2 md:border-r" style={{ borderColor: SITE_CONFIG.colors.foreground, borderWidth: "0 0.5px 0 0" }}>
             <div className="pr-8">
-              {/* TRIADBLUE.COM ECOSYSTEM — always first, always very large */}
+              {/* TRIADBLUE ecosystem — top, biggest */}
               <div className="mb-6">
                 <img
                   src="/images/logos/triadblue-ecosystem-logo.png"
@@ -26,29 +26,29 @@ export function Footer() {
               </div>
 
               {/* Divider */}
-              <div style={{ borderTop: `0.5px solid ${SITE_CONFIG.colors.foreground}`, marginBottom: 20 }} />
+              <div style={{ borderTop: '0.5px solid rgba(9,8,14,0.5)', marginBottom: 20 }} />
 
-              {/* All platforms in fixed order — featured one is larger */}
+              {/* All platforms in fixed order */}
               <div className="space-y-4">
                 {SITE_CONFIG.ecosystem.platforms.map(platform => {
                   const isFeatured = "isCurrent" in platform && platform.isCurrent;
                   const logoHeight = isFeatured ? 32 : 22;
 
-                  const logoImg = (
-                    <img
-                      src={`/images/logos/${platform.logoFile}`}
-                      alt={platform.name}
-                      style={{ height: logoHeight, objectFit: "contain" }}
-                    />
-                  );
-
                   return (
                     <div key={platform.name}>
                       {isFeatured ? (
-                        logoImg
+                        <img
+                          src={`/images/logos/${platform.logoFile}`}
+                          alt={platform.name}
+                          style={{ height: logoHeight, objectFit: "contain" }}
+                        />
                       ) : (
                         <a href={platform.url} target="_blank" rel="noopener noreferrer">
-                          {logoImg}
+                          <img
+                            src={`/images/logos/${platform.logoFile}`}
+                            alt={platform.name}
+                            style={{ height: logoHeight, objectFit: "contain" }}
+                          />
                         </a>
                       )}
                       <p
