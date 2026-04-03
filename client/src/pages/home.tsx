@@ -136,10 +136,10 @@ export default function Home() {
               style={{
                 padding: "12px 24px",
                 borderRadius: "12px 12px 0 0",
-                border: activeTab === tab.id
-                  ? `1px solid ${SITE_CONFIG.colors.primary}`
-                  : `1px solid ${SITE_CONFIG.colors.background}`,
-                borderBottom: "none",
+                border: `1px solid ${SITE_CONFIG.colors.primary}`,
+                borderBottom: activeTab === tab.id
+                  ? `1px solid ${SITE_CONFIG.colors.card}`
+                  : `1px solid ${SITE_CONFIG.colors.primary}`,
                 background: activeTab === tab.id
                   ? SITE_CONFIG.colors.card
                   : SITE_CONFIG.colors.background,
