@@ -3,7 +3,7 @@
 export const SITE_CONFIG = {
   // Brand
   name: "scansblue.com",
-  tagline: "Get scanned. Get scored. Go Blue.",
+  tagline: "Go Blue. Get Scanned. Get Scored.",
   parentCompany: "TRIADBLUE, Inc.",
   supportEmail: "support@scansblue.com",
 
@@ -115,39 +115,39 @@ export const SITE_CONFIG = {
     },
   },
 
-  // Ecosystem — drives the footer
+  // Ecosystem — drives the footer. Fixed order. Never changes.
   ecosystem: {
-    tagline: "One ecosystem. Six platforms. Get found. Get business. Go Blue.",
+    tagline: "Six Platforms. One Ecosystem. Go Blue.",
     platforms: [
       {
         name: "businessblueprint.io",
         url: "https://businessblueprint.io",
-        tagline: "We assess. We prescribe. You grow.",
+        tagline: "Get Assessed. Get Prescribed. Get Business.",
         logoFile: "bb-header-logo.png",
       },
       {
         name: "swipesblue.com",
         url: "https://swipesblue.com",
-        tagline: "Get paid. Stay paid. Go Blue.",
+        tagline: "Go Blue. Get Swiped. Get Paid.",
         logoFile: "swipesblue_logo_image_and_text_as_url.png",
       },
       {
         name: "hostsblue.com",
         url: "https://hostsblue.com",
-        tagline: "Get site. Go live. Go Blue.",
+        tagline: "Go Blue. Get Site. Go Live.",
         logoFile: "hostsblue_logo_image_and_text_as_url.png",
       },
       {
         name: "scansblue.com",
         url: "https://scansblue.com",
-        tagline: "Get scanned. Get scored. Go Blue.",
+        tagline: "Go Blue. Get Scanned. Get Scored.",
         logoFile: "scansblue_logo_image_and_text_as_url.png",
         isCurrent: true as const,
       },
       {
-        name: "BUILDERBLUE2.COM",
+        name: "BUILDERBLUE\u00B2.COM",
         url: "https://builderblue2.com",
-        tagline: "Get vibe. Get code. Go Blue\u00B2.",
+        tagline: "Go Blue. Get Vibed. Get Ahead.",
         logoFile: "builderblue2-logo-url.png",
       },
     ],

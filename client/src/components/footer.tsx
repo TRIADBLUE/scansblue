@@ -1,9 +1,6 @@
 import { SITE_CONFIG } from "@/config/site-config";
 
 export function Footer() {
-  const currentPlatform = SITE_CONFIG.ecosystem.platforms.find(p => "isCurrent" in p && p.isCurrent);
-  const otherPlatforms = SITE_CONFIG.ecosystem.platforms.filter(p => !("isCurrent" in p));
-
   return (
     <footer
       style={{
@@ -16,55 +13,53 @@ export function Footer() {
           {/* Column 1 — Ecosystem (spans 2 cols) */}
           <div className="md:col-span-2 md:border-r" style={{ borderColor: SITE_CONFIG.colors.foreground, borderWidth: "0 0.5px 0 0" }}>
             <div className="pr-8">
-              {/* TRIADBLUE ecosystem — top, biggest */}
-              <div className="mb-8">
+              {/* TRIADBLUE.COM ECOSYSTEM — always first, always very large */}
+              <div className="mb-6">
                 <img
                   src="/images/logos/triadblue-ecosystem-logo.png"
                   alt="TRIADBLUE.COM ECOSYSTEM"
                   style={{ height: 40, objectFit: "contain" }}
                 />
+                <p className="text-xs mt-2" style={{ color: SITE_CONFIG.colors.muted }}>
+                  {SITE_CONFIG.ecosystem.tagline}
+                </p>
               </div>
 
-              {/* Current platform — scansblue, bigger than others */}
-              {currentPlatform && (
-                <div className="mb-6">
-                  <img
-                    src={`/images/logos/${currentPlatform.logoFile}`}
-                    alt={currentPlatform.name}
-                    style={{ height: 32, objectFit: "contain" }}
-                  />
-                  <p
-                    className="text-sm mt-2"
-                    style={{ color: SITE_CONFIG.colors.muted }}
-                  >
-                    {currentPlatform.tagline}
-                  </p>
-                </div>
-              )}
+              {/* Divider */}
+              <div style={{ borderTop: `0.5px solid ${SITE_CONFIG.colors.foreground}`, marginBottom: 20 }} />
 
-              {/* Other platforms — smallest */}
+              {/* All platforms in fixed order — featured one is larger */}
               <div className="space-y-4">
-                {otherPlatforms.map(platform => (
-                  <div key={platform.name}>
-                    <a href={platform.url} target="_blank" rel="noopener noreferrer">
-                      <img
-                        src={`/images/logos/${platform.logoFile}`}
-                        alt={platform.name}
-                        style={{ height: 22, objectFit: "contain" }}
-                      />
-                    </a>
-                    <p
-                      className="text-xs mt-1"
-                      style={{
-                        color: SITE_CONFIG.colors.muted,
-                        fontVariationSettings: '"wdth" 100',
-                        fontWeight: 400,
-                      }}
-                    >
-                      {platform.tagline}
-                    </p>
-                  </div>
-                ))}
+                {SITE_CONFIG.ecosystem.platforms.map(platform => {
+                  const isFeatured = "isCurrent" in platform && platform.isCurrent;
+                  const logoHeight = isFeatured ? 32 : 22;
+
+                  const logoImg = (
+                    <img
+                      src={`/images/logos/${platform.logoFile}`}
+                      alt={platform.name}
+                      style={{ height: logoHeight, objectFit: "contain" }}
+                    />
+                  );
+
+                  return (
+                    <div key={platform.name}>
+                      {isFeatured ? (
+                        logoImg
+                      ) : (
+                        <a href={platform.url} target="_blank" rel="noopener noreferrer">
+                          {logoImg}
+                        </a>
+                      )}
+                      <p
+                        className={isFeatured ? "text-sm mt-2" : "text-xs mt-1"}
+                        style={{ color: SITE_CONFIG.colors.muted }}
+                      >
+                        {platform.tagline}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
