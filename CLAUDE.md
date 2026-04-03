@@ -144,5 +144,7 @@ Use logo files from `/Users/Shared/global assets/logo images and texts/scansblue
 | 2026-04-02 | Site overhaul prompt written. Ecosystem footer prompt written. Brand color audit completed — wrong colors identified throughout frontend. |
 | 2026-04-03 | Site overhaul committed (968519c). Brand colors, homepage tabs, footer, legal pages, logo swap, meta tags, Site Inspector purge. |
 | 2026-04-03 | OpenAI fully removed. Question parser rewritten to DeepSeek (`server/services/questionParser.ts`). `openai` npm package removed. Stale `scansblue/` and `scanslab/` subdirectory copies deleted (328 files). `replit.md` updated. |
+| 2026-04-03 | Removed OpenAI integration from `.replit` config. |
+| 2026-04-03 | Header: removed nav menu (shopping cart only), pointed logo to correct lockup in `client/public/images/logos/`. Removed redundant hero section. Static assets moved from `public/` to `client/public/` (Vite root). Footer reordered: TRIADBLUE ecosystem top (biggest) → scansblue (bigger) → other platforms (smallest). Auditor: added purchase buttons ($15 bundle, $5 add-on), fixed `scrollIntoView` page jump. "A11y" → "Accessibility issues". |
 
 **AGENTS: Update this section on every commit. Your work is not done until this changelog reflects it.**
