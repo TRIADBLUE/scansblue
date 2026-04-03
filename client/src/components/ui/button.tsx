@@ -2,9 +2,9 @@
 import React from "react";
 
 export const COLORS = {
-  triadBlue: "#0000FF",   // Submit / Send buttons
+  triadBlue: "#00203A",   // Primary — Submit / Send buttons
   redNav: "#A00028",      // Navigation, New Chat, Attach, Voice
-  lightBlueText: "#EEFBFF", // Text for all buttons
+  lightBlueText: "#FFFFFF", // Text for all buttons
   borderBlack: "#09080e",  // Border for all buttons
 };
 

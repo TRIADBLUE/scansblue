@@ -423,7 +423,7 @@ export default function CodeAuditor() {
         <div className="py-4 px-6 border-b">
           <div className="text-center mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-primary">
-              Your Site Inspector Agent
+              scansblue.com
             </h1>
             <p className="text-lg sm:text-xl mb-2">
               <span className="text-secondary font-bold">Website Analysis,</span>{' '}

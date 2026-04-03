@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, CheckCircle2, FileText, Mail, Globe } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
+import { SITE_CONFIG } from "@/config/site-config";
 
 interface VerifyResult {
   paid: boolean;
@@ -41,7 +42,7 @@ export default function Success() {
         {isLoading && (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16">
-              <Loader2 className="w-12 h-12 animate-spin text-[#E00420] mb-4" />
+              <Loader2 className="w-12 h-12 animate-spin mb-4" style={{ color: SITE_CONFIG.colors.accent }} />
               <p className="text-lg font-medium">Verifying your payment...</p>
               <p className="text-sm text-muted-foreground mt-2">This will only take a moment.</p>
             </CardContent>
@@ -77,7 +78,7 @@ export default function Success() {
                     <FileText className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                     <div>
                       <p className="text-sm text-muted-foreground">Report status</p>
-                      <Badge className="bg-[#E00420] text-white">Processing</Badge>
+                      <Badge style={{ backgroundColor: SITE_CONFIG.colors.accent, color: "#FFFFFF" }}>Processing</Badge>
                     </div>
                   </div>
                 </div>
@@ -86,21 +87,27 @@ export default function Success() {
                   <h3 className="font-semibold">What happens next</h3>
                   <div className="space-y-2">
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-[#E00420] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</div>
+                      <div className="w-6 h-6 rounded-full text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5" style={{ backgroundColor: SITE_CONFIG.colors.primary }}>1</div>
                       <p className="text-sm">Our scanner is crawling your website right now — up to 50 pages analyzed.</p>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-[#E00420] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</div>
+                      <div className="w-6 h-6 rounded-full text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5" style={{ backgroundColor: SITE_CONFIG.colors.primary }}>2</div>
                       <p className="text-sm">Every page gets checked for accessibility, SEO, performance, and content issues.</p>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-[#E00420] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</div>
+                      <div className="w-6 h-6 rounded-full text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5" style={{ backgroundColor: SITE_CONFIG.colors.primary }}>3</div>
                       <p className="text-sm">Your report with a prioritized task list will be delivered to your email.</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-4 bg-[#E00420]/5 border border-[#E00420]/20 rounded-lg">
+                <div
+                  className="p-4 rounded-lg"
+                  style={{
+                    backgroundColor: `${SITE_CONFIG.colors.accent}0D`,
+                    border: `1px solid ${SITE_CONFIG.colors.accent}33`,
+                  }}
+                >
                   <p className="text-sm">
                     Reports typically complete within a few minutes. If your site has many pages, it may take a bit longer. You'll receive an email as soon as it's ready.
                   </p>
@@ -139,7 +146,7 @@ export default function Success() {
                 If you completed a purchase, your report will still be generated and sent to your email. If you need help, contact support.
               </p>
               <Link href="/purchase">
-                <button className="mt-4 px-4 py-2 rounded-md text-white font-medium" style={{ backgroundColor: "#E00420" }}>
+                <button className="mt-4 px-4 py-2 rounded-md text-white font-medium" style={{ backgroundColor: SITE_CONFIG.colors.primary }}>
                   Back to Purchase
                 </button>
               </Link>

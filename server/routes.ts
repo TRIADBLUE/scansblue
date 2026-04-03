@@ -316,7 +316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[Quick Site Scan] Starting scan for: ${finalUrl}`);
 
       // Crawl the website with a modest page limit for quick results
-      const { pages } = await crawlWebsite(finalUrl, 10);
+      const { pages } = await crawlWebsite(finalUrl, 5);
       
       // Aggregate REAL metrics across all pages
       let totalButtons = 0;

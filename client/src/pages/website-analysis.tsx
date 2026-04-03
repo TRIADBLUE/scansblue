@@ -62,7 +62,7 @@ export default function WebsiteAnalysis() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8 sm:mb-12">
           <h1 className="text-3xl sm:text-4xl font-bold mb-3 text-primary">
-            Your Site Inspector Agent
+            scansblue.com
           </h1>
           <p className="text-xl sm:text-2xl mb-3">
             <span className="text-secondary font-bold">Website Analysis,</span>{' '}
