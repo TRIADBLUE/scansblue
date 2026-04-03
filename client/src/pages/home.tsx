@@ -76,7 +76,7 @@ const categoryConfig = [
   { key: "logos", label: "Logos", desc: "Logo detection" },
   { key: "favicon", label: "Favicon", desc: "Browser icon check" },
   { key: "navigation", label: "Navigation", desc: "Menu structure" },
-  { key: "accessibility", label: "Accessibility", desc: "A11y issues" },
+  { key: "accessibility", label: "Accessibility", desc: "Accessibility issues" },
   { key: "forms", label: "Forms", desc: "Form elements" },
   { key: "images", label: "Images", desc: "Image analysis" },
   { key: "headings", label: "Headings", desc: "Heading structure" },
@@ -127,25 +127,6 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-6xl mx-auto px-4 py-8 sm:py-12">
-        {/* Hero */}
-        <div className="text-center mb-8 sm:mb-12">
-          <h1
-            className="text-3xl sm:text-4xl font-bold mb-3"
-            style={{ color: SITE_CONFIG.colors.foreground }}
-          >
-            {SITE_CONFIG.name}
-          </h1>
-          <p
-            className="text-xl sm:text-2xl mb-3 font-bold"
-            style={{ color: SITE_CONFIG.colors.brandRed }}
-          >
-            {SITE_CONFIG.tagline}
-          </p>
-          <p className="text-lg max-w-2xl mx-auto" style={{ color: SITE_CONFIG.colors.foreground }}>
-            Understand structure, performance, and hidden issues instantly
-          </p>
-        </div>
-
         {/* Tab Bar — curved file folder tabs */}
         <div className="flex items-end gap-1 overflow-x-auto">
           {SITE_CONFIG.tabs.map(tab => (

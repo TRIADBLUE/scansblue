@@ -11,7 +11,7 @@ export function AppHeader() {
           {/* Logo */}
           <Link href="/">
             <img
-              src="/scansblue-logo.png"
+              src="/images/logos/scansblue_logo_image_and_text_as_url.png"
               alt="scansblue.com"
               className="h-16 object-contain"
             />
