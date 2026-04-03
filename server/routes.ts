@@ -617,7 +617,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const SWIPESBLUE_API = "https://swipesblue.com/api/v1";
 
-  // POST /api/checkout — create a checkout session for a $10 Full Report
+  // POST /api/checkout — create a checkout session
+  const PLAN_PRICING: Record<string, { amount: number; description: string }> = {
+    comprehensive: { amount: 1000, description: "Comprehensive Analysis" },
+    bundle: { amount: 1500, description: "Comprehensive Analysis + Auditor" },
+    questions: { amount: 500, description: "5 Additional Auditor Questions" },
+  };
+
   app.post("/api/checkout", async (req, res) => {
     try {
       const validation = checkoutRequestSchema.safeParse(req.body);
@@ -627,14 +633,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { assessmentId, email, websiteUrl } = validation.data;
+      const { assessmentId, email, websiteUrl, plan = "comprehensive" } = validation.data;
+      const planInfo = PLAN_PRICING[plan] || PLAN_PRICING.comprehensive;
 
       // Create the purchase record
       const purchase = await storage.createPurchase({
         assessmentId,
         email,
         websiteUrl,
-        amountCents: 1000,
+        amountCents: planInfo.amount,
         paymentStatus: "pending",
         reportStatus: "pending",
       });
@@ -647,14 +654,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "Authorization": `Bearer ${process.env.SWIPESBLUE_API_KEY}`,
         },
         body: JSON.stringify({
-          amount: 1000,
+          amount: planInfo.amount,
           currency: "usd",
-          description: `Full Website Report — ${websiteUrl}`,
+          description: `${planInfo.description} — ${websiteUrl}`,
           customerEmail: email,
           metadata: {
             purchaseId: purchase.id,
             assessmentId,
             websiteUrl,
+            plan,
             platform: "scansblue.com",
           },
           successUrl: `${req.protocol}://${req.get("host")}/success?session_id={SESSION_ID}`,

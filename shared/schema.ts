@@ -81,6 +81,8 @@ export const checkoutRequestSchema = z.object({
   assessmentId: z.string().min(1, "Assessment ID is required"),
   email: z.string().email("Valid email is required"),
   websiteUrl: z.string().min(1, "Website URL is required"),
+  plan: z.enum(["comprehensive", "bundle", "questions"]).default("comprehensive"),
+  amount: z.number().int().min(500).max(2000).optional(),
 });
 
 export type CheckoutRequest = z.infer<typeof checkoutRequestSchema>;

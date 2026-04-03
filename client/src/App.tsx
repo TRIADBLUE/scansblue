@@ -8,6 +8,7 @@ import Home from "@/pages/home";
 import WebsiteAnalysis from "@/pages/website-analysis";
 import Dashboard from "@/pages/dashboard";
 import CodeAuditor from "@/pages/code-auditor";
+import Pricing from "@/pages/pricing";
 import Purchase from "@/pages/purchase";
 import Success from "@/pages/success";
 import NotFound from "@/pages/not-found";
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/analyze" component={WebsiteAnalysis} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/auditor" component={CodeAuditor} />
+      <Route path="/pricing" component={Pricing} />
       <Route path="/purchase" component={Purchase} />
       <Route path="/success" component={Success} />
       <Route component={NotFound} />

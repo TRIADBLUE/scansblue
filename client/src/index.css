@@ -139,3 +139,43 @@
           stroke: #A00028 !important;
           fill: none !important;
         }
+
+        /* ── Stripe.com-style rounded design ── */
+        @layer components {
+          /* Cards and major containers */
+          [data-slot="card"],
+          .rounded-lg,
+          [role="dialog"],
+          [data-radix-popper-content-wrapper] > * {
+            border-radius: 1rem !important;
+          }
+
+          /* Inputs and interactive fields */
+          input, textarea, select,
+          [data-slot="input"],
+          [role="combobox"] {
+            border-radius: 0.75rem !important;
+          }
+
+          /* Buttons */
+          button, a[role="button"], [role="button"] {
+            border-radius: 0.75rem !important;
+          }
+
+          /* Badges */
+          [data-slot="badge"] {
+            border-radius: 0.5rem !important;
+          }
+
+          /* Dropdown menus and popovers */
+          [data-radix-menu-content],
+          [role="listbox"],
+          [role="menu"] {
+            border-radius: 0.875rem !important;
+          }
+
+          /* Category metric tiles */
+          .rounded-lg.border.bg-card {
+            border-radius: 0.875rem !important;
+          }
+        }

@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Globe, Check, AlertTriangle, X, Search } from "lucide-react";
+import { Loader2, Globe, Check, AlertTriangle, X, Search, ArrowRight, FileText, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { Link } from "wouter";
 import quickAnalysisIcon from "@assets/quick_analysis_icon_1768197865904.png";
 
 interface QuickScanResult {
@@ -252,6 +253,49 @@ export default function Home() {
               </p>
             </CardContent>
           </Card>
+        )}
+
+        {/* Upsell — shown after scan results */}
+        {scanResult && (
+          <div className="mt-8">
+            <div
+              className="p-6 sm:p-8"
+              style={{
+                backgroundColor: "rgba(224, 4, 32, 0.03)",
+                border: "1px solid rgba(224, 4, 32, 0.15)",
+                borderRadius: "1rem",
+              }}
+            >
+              <h3 className="text-xl font-bold mb-2" style={{ color: "#09080E" }}>
+                This scan checked {scanResult.pagesScanned} pages. Your site has more.
+              </h3>
+              <p className="text-sm mb-6" style={{ color: "#808080" }}>
+                The free scan gives you a snapshot. A full report crawls up to 50 pages and delivers a prioritized task list — every accessibility, SEO, performance, and content issue ranked by what matters most.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href={`/purchase?plan=comprehensive&url=${encodeURIComponent(scanResult.url)}`}>
+                  <button
+                    className="h-12 px-6 font-semibold flex items-center justify-center gap-2 text-white"
+                    style={{ backgroundColor: "#FF6B00", borderRadius: "0.75rem" }}
+                  >
+                    <FileText className="w-5 h-5" />
+                    Get Full Report — $10
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </Link>
+                <Link href={`/purchase?plan=bundle&url=${encodeURIComponent(scanResult.url)}`}>
+                  <button
+                    className="h-12 px-6 font-semibold flex items-center justify-center gap-2 text-white"
+                    style={{ backgroundColor: "#E00420", borderRadius: "0.75rem" }}
+                  >
+                    <MessageSquare className="w-5 h-5" />
+                    Report + 5 Auditor Questions — $15
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

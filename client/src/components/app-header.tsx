@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Tag } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,10 +11,18 @@ import quickAnalysisIcon from "@assets/quick_analysis_icon_1768197865904.png";
 import comprehensiveIcon from "@assets/comprehensive_icon_1768197865904.png";
 import auditorIcon from "@assets/auditor_icon_1768197865903.png";
 
-const navItems = [
+interface NavItem {
+  path: string;
+  label: string;
+  iconSrc?: string;
+  IconComponent?: React.ComponentType<{ className?: string }>;
+}
+
+const navItems: NavItem[] = [
   { path: "/", label: "Quick Analysis", iconSrc: quickAnalysisIcon },
   { path: "/analyze", label: "Comprehensive Analysis", iconSrc: comprehensiveIcon },
   { path: "/auditor", label: "Code and Site Auditor", iconSrc: auditorIcon },
+  { path: "/pricing", label: "Pricing", IconComponent: Tag },
 ];
 
 export function AppHeader() {
@@ -43,7 +51,11 @@ export function AppHeader() {
                 className="flex items-center gap-2 px-4 py-2 rounded-md border border-[#A00028] bg-transparent text-[#A00028] hover:bg-[#A00028]/10 focus:outline-none focus:ring-2 focus:ring-[#A00028]"
                 data-testid="button-nav-dropdown"
               >
-                <img src={currentItem.iconSrc} alt="" className="w-5 h-5" />
+                {currentItem.iconSrc ? (
+                  <img src={currentItem.iconSrc} alt="" className="w-5 h-5" />
+                ) : currentItem.IconComponent ? (
+                  <currentItem.IconComponent className="w-5 h-5" />
+                ) : null}
                 <span className="hidden sm:inline">{currentItem.label}</span>
                 <ChevronDown className="w-4 h-4" />
               </button>
@@ -57,7 +69,11 @@ export function AppHeader() {
                   className="flex items-center gap-2 cursor-pointer px-3 py-2 hover:bg-[#A00028]/10 rounded-md"
                   data-testid={`button-nav-${item.path.replace("/", "") || "home"}`}
                 >
-                  <img src={item.iconSrc} alt="" className="w-5 h-5" />
+                  {item.iconSrc ? (
+                    <img src={item.iconSrc} alt="" className="w-5 h-5" />
+                  ) : item.IconComponent ? (
+                    <item.IconComponent className="w-5 h-5" />
+                  ) : null}
                   {item.label}
                 </DropdownMenuItem>
               ))}
