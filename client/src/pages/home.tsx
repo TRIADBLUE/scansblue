@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import {
   Loader2, Globe, Check, AlertTriangle, X, Search, ArrowRight,
   FileText, MessageSquare, CheckCircle2, Shield, Tag, Send, Upload,
-  Download, Plus, Trash2, Mic, Square, Zap, Mail,
+  Download, Plus, Trash2, Mic, Square, Zap, Mail, ShoppingCart,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -542,7 +542,7 @@ function AuditorContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
 
-  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   useEffect(() => { scrollToBottom(); }, [messages]);
 
   useEffect(() => {
@@ -806,6 +806,23 @@ function AuditorContent() {
           <p className="text-sm" style={{ color: SITE_CONFIG.colors.muted }}>
             Paste text, questions, or details. Ask anything. Get real feedback.
           </p>
+          <div className="mt-3 flex items-center gap-3">
+            <a
+              href="/purchase?plan=bundle"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              style={{ backgroundColor: SITE_CONFIG.colors.primary }}
+            >
+              <ShoppingCart className="w-4 h-4" />
+              Get 5 Questions — $15 (includes full report)
+            </a>
+            <a
+              href="/purchase?plan=questions"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border transition-opacity hover:opacity-90"
+              style={{ borderColor: SITE_CONFIG.colors.primary, color: SITE_CONFIG.colors.primary }}
+            >
+              Add 5 More Questions — $5
+            </a>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto py-6 px-6 space-y-4" style={{ maxHeight: "400px" }}>

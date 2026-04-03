@@ -16,7 +16,16 @@ export function Footer() {
           {/* Column 1 — Ecosystem (spans 2 cols) */}
           <div className="md:col-span-2 md:border-r" style={{ borderColor: SITE_CONFIG.colors.foreground, borderWidth: "0 0.5px 0 0" }}>
             <div className="pr-8">
-              {/* Current platform hero */}
+              {/* TRIADBLUE ecosystem — top, biggest */}
+              <div className="mb-8">
+                <img
+                  src="/images/logos/triadblue-ecosystem-logo.png"
+                  alt="TRIADBLUE.COM ECOSYSTEM"
+                  style={{ height: 40, objectFit: "contain" }}
+                />
+              </div>
+
+              {/* Current platform — scansblue, bigger than others */}
               {currentPlatform && (
                 <div className="mb-6">
                   <img
@@ -33,16 +42,7 @@ export function Footer() {
                 </div>
               )}
 
-              {/* Ecosystem logo */}
-              <div className="mb-6">
-                <img
-                  src="/images/logos/triadblue-ecosystem-logo.png"
-                  alt="TRIADBLUE.COM ECOSYSTEM"
-                  style={{ height: 28, objectFit: "contain" }}
-                />
-              </div>
-
-              {/* Other platforms */}
+              {/* Other platforms — smallest */}
               <div className="space-y-4">
                 {otherPlatforms.map(platform => (
                   <div key={platform.name}>
