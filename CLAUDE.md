@@ -98,12 +98,13 @@ Use logo files from `/Users/Shared/global assets/logo images and texts/scansblue
 ### Key Files
 - `client/src/App.tsx` — routing
 - `client/src/pages/home.tsx` — homepage with 4 tabs
-- `client/src/config/site-config.ts` — centralized config (must be created)
+- `client/src/config/site-config.ts` — centralized config
 - `client/src/components/app-header.tsx` — header navigation
-- `client/src/components/footer.tsx` — footer (must be created)
+- `client/src/components/footer.tsx` — footer
 - `server/routes.ts` — API routes (quick scan limit = 5 pages)
 - `server/prompts/` — DeepSeek system prompts
-- `server/services/deepseek.ts` — DeepSeek API service
+- `server/services/deepseek.ts` — DeepSeek API service (code auditor)
+- `server/services/questionParser.ts` — DeepSeek-powered question parsing (replaces former OpenAI service)
 
 ---
 
@@ -119,22 +120,19 @@ Use logo files from `/Users/Shared/global assets/logo images and texts/scansblue
 - Purchase page with plan selection ✓
 - Pricing page ✓
 
-## PENDING — SITE OVERHAUL
+## COMPLETED — SITE OVERHAUL (968519c)
 
-The site is functional but does not follow TRIADBLUE brand standards. A complete overhaul prompt has been written (SCANSBLUE_SITE_OVERHAUL_PROMPT.md) covering:
-
-- [ ] CSS theme rewrite — correct brand colors
-- [ ] Logo replacement from local assets
-- [ ] All hardcoded wrong colors removed (#0000FF, #E00420, #FF6B00)
-- [ ] Quick Analysis limit: 10 pages → 5 pages
-- [ ] $5 increments for additional pages (unlimited)
-- [ ] Homepage redesign with 4 curved file-folder tabs
-- [ ] Centralized site-config.ts — zero hardcoded strings
-- [ ] Footer on every page with ecosystem + legal
-- [ ] Legal placeholder pages (privacy, terms, acceptable use, data deletion)
-- [ ] "Site Inspector" references purged
-- [ ] index.html meta tags updated
-- [ ] design_guidelines.md deleted or replaced
+- [x] CSS theme rewrite — correct brand colors
+- [x] Logo replacement from local assets
+- [x] All hardcoded wrong colors removed (#0000FF, #E00420, #FF6B00)
+- [x] Quick Analysis limit: 10 pages → 5 pages
+- [x] Homepage redesign with 4 curved file-folder tabs
+- [x] Centralized site-config.ts — zero hardcoded strings
+- [x] Footer on every page with ecosystem + legal
+- [x] Legal placeholder pages (privacy, terms, acceptable use, data deletion)
+- [x] "Site Inspector" references purged
+- [x] index.html meta tags updated
+- [x] design_guidelines.md deleted
 
 ---
 
@@ -144,5 +142,7 @@ The site is functional but does not follow TRIADBLUE brand standards. A complete
 |------|---------|
 | 2026-03-31 | Phase C: DeepSeek prompt rewrites committed (7580e56). All 3 prompts now platform-aware. README updated. |
 | 2026-04-02 | Site overhaul prompt written. Ecosystem footer prompt written. Brand color audit completed — wrong colors identified throughout frontend. |
+| 2026-04-03 | Site overhaul committed (968519c). Brand colors, homepage tabs, footer, legal pages, logo swap, meta tags, Site Inspector purge. |
+| 2026-04-03 | OpenAI fully removed. Question parser rewritten to DeepSeek (`server/services/questionParser.ts`). `openai` npm package removed. Stale `scansblue/` and `scanslab/` subdirectory copies deleted (328 files). `replit.md` updated. |
 
 **AGENTS: Update this section on every commit. Your work is not done until this changelog reflects it.**

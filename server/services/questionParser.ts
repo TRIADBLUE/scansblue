@@ -1,12 +1,7 @@
-import OpenAI from "openai";
 import pRetry from "p-retry";
 
-// This is using Replit's AI Integrations service, which provides OpenAI-compatible API access without requiring your own OpenAI API key.
-// Referenced from blueprint:javascript_openai_ai_integrations
-const openai = new OpenAI({
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
-});
+const DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions";
+const API_KEY = process.env.DEEPSEEK_API_KEY;
 
 // Helper function to check if error is rate limit or quota violation
 function isRateLimitError(error: any): boolean {
@@ -27,12 +22,26 @@ export interface ParsedQuestion {
 }
 
 export async function parseUserQuestion(question: string): Promise<ParsedQuestion> {
+  if (!API_KEY) {
+    console.warn("DEEPSEEK_API_KEY not set. Question parsing will use fallback.");
+    return {
+      analysisType: "unknown",
+      urls: [],
+      rawQuestion: question
+    };
+  }
+
   try {
     const response = await pRetry(
       async () => {
-        try {
-          const result = await openai.chat.completions.create({
-            model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+        const result = await fetch(DEEPSEEK_API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: "deepseek-chat",
             messages: [
               {
                 role: "system",
@@ -78,36 +87,36 @@ Rules:
               }
             ],
             response_format: { type: "json_object" },
-            max_completion_tokens: 8192,
-          });
+            max_tokens: 1024,
+          }),
+        });
 
-          const content = result.choices[0]?.message?.content;
-          if (!content) {
-            throw new Error("No response from OpenAI");
-          }
-
-          const parsed = JSON.parse(content) as ParsedQuestion;
-          return parsed;
-        } catch (error: any) {
-          if (isRateLimitError(error)) {
-            throw error; // Rethrow to trigger p-retry
-          }
-          // For non-rate-limit errors, don't retry
-          throw error;
+        if (!result.ok) {
+          const error = await result.json();
+          throw new Error(`DeepSeek API error: ${error.error?.message || result.statusText}`);
         }
+
+        const data = await result.json();
+        const content = data.choices?.[0]?.message?.content;
+
+        if (!content) {
+          throw new Error("No response from DeepSeek");
+        }
+
+        return JSON.parse(content) as ParsedQuestion;
       },
       {
         retries: 7,
         minTimeout: 2000,
         maxTimeout: 128000,
         factor: 2,
+        shouldRetry: (error: any) => isRateLimitError(error),
       }
     );
 
     return response;
   } catch (error) {
     console.error("Error parsing question:", error);
-    // Return a default structure if parsing fails
     return {
       analysisType: "unknown",
       urls: [],

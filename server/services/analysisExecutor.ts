@@ -1,4 +1,4 @@
-import type { ParsedQuestion } from "./openai";
+import type { ParsedQuestion } from "./questionParser";
 import type { AgentResponse } from "@shared/schema";
 import {
   countButtons,

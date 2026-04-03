@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import crypto from "crypto";
 import cors from "cors";
 import { agentRequestSchema, batchAgentRequestSchema, auditRequestSchema, checkoutRequestSchema } from "@shared/schema";
-import { parseUserQuestion } from "./services/openai";
+import { parseUserQuestion } from "./services/questionParser";
 import { executeAnalysis } from "./services/analysisExecutor";
 import { sendWebhook } from "./services/webhook";
 import { crawlWebsite } from "./services/websiteCrawler";
@@ -80,7 +80,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { content, webhookUrl } = validation.data;
 
-      // Parse the user's question using OpenAI
+      // Parse the user's question using DeepSeek
       const parsed = await parseUserQuestion(content);
 
       // Check if we have URLs to analyze
